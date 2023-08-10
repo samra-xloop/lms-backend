@@ -26,7 +26,13 @@ SECRET_KEY = 'django-insecure-miq*b1bh^ci4j9-a(8t-koc_qw3a#tfc*5u#n-&sz@&=iwgp3e
 DEBUG = True
 
 ALLOWED_HOSTS = []
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',
+    ],
+}
 
 # Application definition
 
@@ -37,6 +43,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'accounts',
 ]
 
 MIDDLEWARE = [
@@ -68,7 +77,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'LMS.wsgi.application'
-
+#This is updated git repo
 
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
