@@ -44,18 +44,18 @@ from .models import CustomUser
 @api_view(['POST'])
 def user_login(request):
     if request.method == 'POST':
-        username = request.data.get('username')
+        email = request.data.get('email')
         password = request.data.get('password')
 
         user = None
-        if '@' in username:
+        if '@' in email:
             try:
-                user = CustomUser.objects.get(email=username)
+                user = CustomUser.objects.get(email=email)
             except ObjectDoesNotExist:
                 pass
 
         if not user:
-            user = authenticate(username=username, password=password)
+            user = authenticate(email=email, password=password)
 
         if user:
             token, _ = Token.objects.get_or_create(user=user)
