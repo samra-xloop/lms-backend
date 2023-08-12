@@ -1,5 +1,5 @@
 """
-ASGI config for LMS project.
+ASGI config for Users project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

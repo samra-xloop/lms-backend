@@ -15,7 +15,9 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 """
-        
+    
+
+    
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=30)
@@ -37,5 +39,18 @@ class CustomUser(AbstractUser):
     # Add custom fields here, if needed
 
     def __str__(self):
-        return self.email
+        return self.username
     
+    
+class Role(models.Model):
+        ROLE_CHOICES = [
+            ('admin', 'Admin'),
+            ('instructor', 'Instructor'),
+            ('learner', 'Learner'),
+        ]
+    
+        user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+        role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+
+        def __str__(self):
+            return f"{self.user.email} - {self.role}"
