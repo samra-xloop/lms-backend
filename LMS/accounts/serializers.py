@@ -54,7 +54,7 @@ class RoleSerializer(serializers.ModelSerializer):
         model = Role
         fields = ['user', 'role']
         
-        
+"""        
 class UserWithRoleSerializer(serializers.ModelSerializer):
     role = serializers.StringRelatedField(source='role.role')
 
@@ -69,3 +69,24 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['username','email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'updated_at']
+"""
+
+# accounts/serializers.py
+class UserSerializer(serializers.ModelSerializer):
+    role = serializers.StringRelatedField(source='role.role')  # Add this line
+
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'updated_at', 'role']  # Include 'role' here
+
+class UserWithRoleSerializer(serializers.ModelSerializer):
+    role = serializers.StringRelatedField(source='role.role')
+
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'email', 'first_name', 'last_name', 'role']  # Include 'role' here
+        
+class DeletedUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'email', 'is_deleted']

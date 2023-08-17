@@ -3,6 +3,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
+from django.conf import settings
 
 
 
@@ -20,6 +21,7 @@ class CustomUser(AbstractUser):
     
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
+    username = models.CharField(max_length=150, unique=True, default=None, null=True)  # Set default to None and allow null
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=30)
     GENDER_CHOICES = [
@@ -33,6 +35,7 @@ class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=20, default='Unknown')
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
+    is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
 
@@ -54,3 +57,16 @@ class Role(models.Model):
 
         def __str__(self):
             return f"{self.user.email} - {self.role}"
+        
+"""        
+# models.py
+class PasswordChangeRequest(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    is_approved = models.BooleanField(default=False)
+"""
+
+# models.py
+class PasswordResetToken(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    token = models.CharField(max_length=32)
+    created_at = models.DateTimeField(default=timezone.now)
