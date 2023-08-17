@@ -15,24 +15,6 @@ from django.utils import timezone
 
 
 
-"""
-# accounts/views.py
-#Registration with Admin
-from rest_framework.decorators import api_view, permission_classes
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def register_user(request):
-    if request.method == 'POST':
-        # Check if the requesting user has an 'admin' role
-        if request.user.role.role == 'admin':
-            serializer = UserSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({'detail': 'You do not have permission to register users.'}, status=status.HTTP_403_FORBIDDEN)
-"""
 #To Register New User
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response

@@ -1,15 +1,4 @@
 # accounts/urls.py
-"""
-from django.urls import path
-from .views import register_user, user_login, user_logout
-
-urlpatterns = [
-    path('register/', register_user, name='register'),
-    path('login/', user_login, name='login'),
-    path('logout/', user_logout, name='logout'),
-]
-"""
-# accounts/urls.py
 
 from django.urls import path
 from .views import user_login, user_logout,list_all_users,list_instructor_users,list_own_user,list_own_instructor_user, update_user, delete_user,register_user,assign_role,list_deleted_users,reset_password,verify_password_reset_token,request_password_reset
