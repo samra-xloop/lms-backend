@@ -11,10 +11,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from .serializers import UserWithRoleSerializer,DeletedUserSerializer
 import secrets
 from django.utils import timezone
-
-
-
-
 #To Register New User
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
@@ -87,6 +83,7 @@ def user_logout(request):
 
 # For admin to assign roles to users.
 from rest_framework.decorators import api_view, permission_classes
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def assign_role(request):
