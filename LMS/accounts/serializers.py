@@ -3,24 +3,6 @@
 from rest_framework import serializers
 from .models import CustomUser, Role
 
-"""
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['username', 'email', 'password']
-        extra_kwargs = {'password': {'write_only': True}}
-        
-
-    def create(self, validated_data):
-        user = CustomUser(
-            username=validated_data['username'],
-            email=validated_data['email']
-        )
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
-    
-"""
     
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -54,22 +36,6 @@ class RoleSerializer(serializers.ModelSerializer):
         model = Role
         fields = ['user', 'role']
         
-"""        
-class UserWithRoleSerializer(serializers.ModelSerializer):
-    role = serializers.StringRelatedField(source='role.role')
-
-    class Meta:
-        model = CustomUser
-        fields = ['username','email', 'first_name', 'last_name', 'role']
-        
-        
-# accounts/serializers.py
-
-class UserSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CustomUser
-        fields = ['username','email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'updated_at']
-"""
 
 # accounts/serializers.py
 class UserSerializer(serializers.ModelSerializer):
