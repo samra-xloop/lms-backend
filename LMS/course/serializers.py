@@ -31,25 +31,25 @@ class FileSerializer(serializers.ModelSerializer):
         model = Files 
         fields = '__all__'
 
-class QuizSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Quiz
-        fields = '__all__'
+# class QuizSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Quiz
+#         fields = '__all__'
 
-class Quiz_QuestionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Quiz_Question 
-        fields = '__all__'
+# class Quiz_QuestionSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Quiz_Question 
+#         fields = '__all__'
 
-class Question_OptionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Question_Option 
-        fields = '__all__'
+# class Question_OptionSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Question_Option 
+#         fields = '__all__'
 
-class Quiz_SubmissionSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Quiz_Submission 
-        fields = '__all__'
+# class Quiz_SubmissionSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Quiz_Submission 
+#         fields = '__all__'
 
 class AssignmentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -59,4 +59,19 @@ class AssignmentSerializer(serializers.ModelSerializer):
 class Assignment_SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment_Submission
+        fields = '__all__'
+
+class Assignment_PartnerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assignment_Partners
+        fields = '__all__'
+
+class Assignment_GradingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assignment_Grading
+        fields = '__all__'
+
+class EnrollmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enrollement
         fields = '__all__'
