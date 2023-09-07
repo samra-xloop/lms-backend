@@ -2,6 +2,9 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
 
+
+
+
 class Category(models.Model):
     
     TRACK_1 = 'DEG'
@@ -21,9 +24,9 @@ class Courses(models.Model):
     categories = models.ForeignKey(Category, on_delete=models.CASCADE)  
     name = models.CharField(max_length=100)
     description = models.TextField()
-    
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
+    
     
 
     
@@ -69,9 +72,11 @@ class Files(models.Model):
 class Quiz(models.Model):
     course = models.ForeignKey(Courses, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
+    
     description = models.TextField()
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
+   
     start_time = models.TimeField()
     end_time = models.TimeField()
 

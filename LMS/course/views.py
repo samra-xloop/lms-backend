@@ -3,6 +3,7 @@ from .serializers import *
 from rest_framework import viewsets
 from django.contrib.auth.models import User
 
+
 # Create your views here.
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -51,4 +52,3 @@ class AssignmentViewSet(viewsets.ModelViewSet):
 class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
     queryset = Assignment_Submission.objects.all()
     serializer_class = Assignment_SubmissionSerializer
-
