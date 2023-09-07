@@ -2,8 +2,8 @@
 
 from rest_framework import serializers
 from .models import CustomUser, Role
-
-    
+from course.models import Courses
+from course.serializers import CourseSerializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
@@ -28,31 +28,67 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
 
-
-
-
+#For Roles 
 class RoleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ['user', 'role']
         
-
-# accounts/serializers.py
+#For User
 class UserSerializer(serializers.ModelSerializer):
-    role = serializers.StringRelatedField(source='role.role')  # Add this line
+    role = serializers.StringRelatedField(source='role.role')  
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'updated_at', 'role']  # Include 'role' here
+        fields = ['id','username', 'email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'updated_at', 'role','teams','courses']  # Include 'role' here
 
+#For User With Roles
 class UserWithRoleSerializer(serializers.ModelSerializer):
     role = serializers.StringRelatedField(source='role.role')
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'role']  # Include 'role' here
-        
+        fields = ['username', 'email', 'first_name', 'last_name', 'role']  
+ 
+ #Check Deleted Users       
 class DeletedUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['id', 'email', 'is_deleted']
+
+
+#For Teams
+from .models import Team
+
+class TeamSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Team
+        fields = '__all__'
+
+class CustomUserSerializer(serializers.ModelSerializer):
+    teams = serializers.StringRelatedField(many=True)  
+    courses = CourseSerializer(many=True)
+
+    class Meta:
+        model = CustomUser
+        fields =['id', 'email']
+
+
+        
+from rest_framework import serializers
+from .models import Team
+from accounts.serializers import UserSerializer
+
+class TeamWithUsersSerializer(serializers.ModelSerializer):
+    users = serializers.SerializerMethodField()
+    
+
+    class Meta:
+        model = Team
+        fields = '__all__'
+
+    def get_users(self, obj):
+        users = obj.users.filter(is_deleted=False)
+        return UserSerializer(users, many=True).data
+
+    

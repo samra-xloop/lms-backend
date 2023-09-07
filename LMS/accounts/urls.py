@@ -1,22 +1,35 @@
 # accounts/urls.py
 
 from django.urls import path
-from .views import user_login, user_logout,list_all_users,list_instructor_users,list_own_user,list_own_instructor_user, update_user, delete_user,register_user,assign_role,list_deleted_users,reset_password,verify_password_reset_token,request_password_reset
+from . import views
 urlpatterns = [
-    path('register/', register_user, name='register'),
-    path('update_user/', update_user, name='update_user'),
-    path('delete_user/', delete_user, name='delete_user'),
-    path('login/', user_login, name='login'),
-    path('logout/', user_logout, name='logout'),
-    path('assign_role/', assign_role, name='assign_role'),
-    path('list_all_users/', list_all_users, name='list_all_users'),
-    path('list_instructor_users/', list_instructor_users, name='list_instructor_users'),
-    path('list_own_user/', list_own_user, name='list_own_user'),
-    path('list_own_instructor_user/', list_own_instructor_user, name='list_own_instructor_user'),
-    path('list_deleted_users/', list_deleted_users, name='list_deleted_users'),
-    path('request_password_reset/', request_password_reset, name='request_password_reset'),
-    path('verify_password_reset_token/<str:token>/', verify_password_reset_token, name='verify_password_reset_token'),
-    path('reset_password/<str:token>/', reset_password, name='reset_password'),
+    path('register/', views.register_user, name='register'),
+    path('update_user/', views.update_user, name='update_user'),
+    path('delete_user/', views.delete_user, name='delete_user'),
+    path('login/', views.user_login, name='login'),
+    path('logout/', views.user_logout, name='logout'),
+    path('assign_role/', views.assign_role, name='assign_role'),
+    path('list_all_users/', views.list_all_users, name='list_all_users'),
+    path('list_instructor_users/', views.list_instructor_users, name='list_instructor_users'),
+    path('list_own_user/', views.list_own_user, name='list_own_user'),
+    path('list_own_instructor_user/', views.list_own_instructor_user, name='list_own_instructor_user'),
+    path('list_deleted_users/', views.list_deleted_users, name='list_deleted_users'),
+    path('request_password_reset/', views.request_password_reset, name='request_password_reset'),
+    path('verify_password_reset_token/<str:token>/', views.verify_password_reset_token, name='verify_password_reset_token'),
+    path('reset_password/<str:token>/', views.reset_password, name='reset_password'),
+    path('create_team/', views.create_team, name='create_team'),
+    path('delete_team/', views.delete_team, name='delete_team'),
+    path('list_deleted_teams/', views.list_deleted_teams, name='list_deleted_teams'),
+    path('add_users_to_team/', views.add_users_to_team, name='add_users_to_team'),
+    path('teams_list_data/', views.list_teams_data, name='list_teams_data'),
+    path('add_courses_to_team/', views.add_courses_to_team, name='add_courses_to_team'),
+    path('assign_course_to_users/', views.assign_course_to_users, name='assign_course_to_users'),
+
+   
+
+
+
+
 
 
 ]
