@@ -4,6 +4,7 @@ from rest_framework import viewsets, status
 from django.contrib.auth.models import User
 from rest_framework.response import Response
 
+
 # Create your views here.
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -97,6 +98,7 @@ class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
     queryset = Assignment_Submission.objects.all()
     serializer_class = Assignment_SubmissionSerializer
 
+
     def destroy(self, request, *args, **kwargs):
     #  return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         pass
@@ -132,3 +134,4 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
     #  return Response(status=status.HTTP_405_METHOD_NOT_ALLOWED)
         pass
+

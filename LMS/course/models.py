@@ -53,6 +53,12 @@ from django.utils import timezone
 #     QUIZ = 'quiz'
 #     LECTURE = 'lecture'
 #     ANNOUNCEMENT = 'announcement'
+
+
+
+
+class Category(models.Model):
+
     
 #     STATUS_OPTIONS = (
 #         (ACTIVE,'Active'),
@@ -98,6 +104,7 @@ class Category(models.Model):
 class Courses(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
+
     # many courses can have same category.
     category = models.ManyToManyField(Category, default=None, null=True, blank=True)      
     # slug = models.SlugField()
@@ -108,6 +115,14 @@ class Courses(models.Model):
     # updated_by = models.ForeignKey(user, on_delete=models.CASCADE)
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateTimeField(default=timezone.now)
+
+    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    
+
+    
+
 
     def __str__(self):
         return self.title
