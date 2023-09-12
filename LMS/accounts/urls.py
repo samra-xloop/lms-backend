@@ -24,6 +24,8 @@ urlpatterns = [
     path('teams_list_data/', views.list_teams_data, name='list_teams_data'),
     path('add_courses_to_team/', views.add_courses_to_team, name='add_courses_to_team'),
     path('assign_course_to_users/', views.assign_course_to_users, name='assign_course_to_users'),
+     path('remove_users_from_team/', views.remove_users_from_team, name='remove_users_from_team'),
+    
 
    
 

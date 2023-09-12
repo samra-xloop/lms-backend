@@ -406,3 +406,43 @@ def assign_course_to_users(request):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+#Remove Users from Teams
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_users_from_team(request):
+    if request.method == 'POST':
+        # Check if the requesting user has an 'admin' role
+        if request.user.role.role == 'admin':
+            team_name = request.data.get('team_name')
+            user_emails = request.data.get('user_emails')  # Expect a list of user emails
+
+            try:
+                team = Team.objects.get(name=team_name)
+            except Team.DoesNotExist:
+                return Response({'detail': 'Team not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            if team.is_deleted:
+                return Response({'detail': 'Team is deleted and cannot remove users.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            removed_users = []
+            not_found_users = []
+
+            for user_email in user_emails:
+                try:
+                    user = CustomUser.objects.get(email=user_email)
+                    team.users.remove(user)  # Remove the user from the team
+                    user.teams.remove(team)  # Remove the team from the user
+                    removed_users.append(user_email)
+                except CustomUser.DoesNotExist:
+                    not_found_users.append(user_email)
+
+            response_data = {
+                'removed_users': removed_users,
+                'not_found_users': not_found_users,
+                'detail': 'Users removed from the team successfully.',
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'You do not have permission to remove users from teams.'}, status=status.HTTP_403_FORBIDDEN)
