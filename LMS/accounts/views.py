@@ -446,3 +446,32 @@ def remove_users_from_team(request):
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({'detail': 'You do not have permission to remove users from teams.'}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_courses_from_team(request):
+    if request.method == 'POST':
+        team_id = request.data.get('team_id')
+        course_ids = request.data.get('course_ids', [])
+
+        try:
+            team = Team.objects.get(pk=team_id)
+        except Team.DoesNotExist:
+            return Response({'detail': 'Team not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        removed_courses = []
+        not_found_courses = []
+
+        for course_id in course_ids:
+            try:
+                course = Courses.objects.get(pk=course_id)
+                team.courses.remove(course)  # Remove the course from the team
+                removed_courses.append(course_id)
+            except Courses.DoesNotExist:
+                not_found_courses.append(course_id)
+
+        return Response({'removed_courses': removed_courses, 'not_found_courses': not_found_courses, 'detail': 'Courses removed from the team successfully'}, status=status.HTTP_200_OK)
+
+
+
