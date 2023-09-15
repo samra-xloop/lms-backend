@@ -475,3 +475,31 @@ def remove_courses_from_team(request):
 
 
 
+@api_view(['POST'])
+def remove_courses_from_users(request):
+    if request.method == 'POST':
+        email_list = request.data.get('email_list', [])
+        course_name = request.data.get('course_name')
+
+        course = Courses.objects.filter(name=course_name).first()
+        if course is None:
+            return Response({'detail': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        removed_users = []
+        not_found_users = []
+
+        for email in email_list:
+            try:
+                user = get_user_model().objects.get(email=email)
+                user.courses.remove(course)  # Remove the course from the user
+                removed_users.append(email)
+            except get_user_model().DoesNotExist:
+                not_found_users.append(email)
+
+        response_data = {
+            'removed_users': removed_users,
+            'not_found_users': not_found_users,
+            'detail': f'Course "{course_name}" removed from users',
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
