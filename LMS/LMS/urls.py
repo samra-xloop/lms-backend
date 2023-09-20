@@ -16,6 +16,8 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
+from django.urls import path, include
+from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf import settings
 from django.conf.urls.static import static
@@ -25,13 +27,11 @@ from drf_yasg import openapi
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Content Section APIs",
+        title="Content Section and Account Section APIs ",
         default_version='v1',
-        description="All content section APIs along with their functionalities are given below.",
+        description="All content section and account section APIs along with their functionalities are given below.",
         terms_of_service="https://www.yourapi.com/terms/",
         contact=openapi.Contact(email="contact@yourapi.com"),
-        license=openapi.License(name="Your API License"),
-    ),
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
@@ -43,6 +43,7 @@ urlpatterns = [
     re_path(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     path('api/swagger/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
+
 ]
 
 if settings.DEBUG:
