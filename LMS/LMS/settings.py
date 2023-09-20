@@ -53,7 +53,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'accounts',
     'course',
-    'drf_yasg',
+    'drf_yasg'
 ]
 
 MIDDLEWARE = [
