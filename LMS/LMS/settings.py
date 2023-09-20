@@ -25,7 +25,10 @@ SECRET_KEY = 'django-insecure-n3162s*gf5_r1-$4kh2suf++_ia#pj63nb++p83=)$qwf1^vc)
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+CORS_ALLOWED_ORIGINS = [
+    "https://8000-samraxloop-lmsbackend-6lwjt0ge55v.ws-us104.gitpod.io",
+    # Other allowed origins...
+]
 ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = 'accounts.CustomUser'

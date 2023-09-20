@@ -12,11 +12,6 @@ from .serializers import UserWithRoleSerializer,DeletedUserSerializer
 import secrets
 from django.utils import timezone
 #To Register New User
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework import status
-from rest_framework.permissions import IsAuthenticated
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def register_user(request):
@@ -34,14 +29,6 @@ def register_user(request):
             return Response({'detail': 'You do not have permission to register users.'}, status=status.HTTP_403_FORBIDDEN)
 
     
-#Login
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth import authenticate
-from django.core.exceptions import ObjectDoesNotExist
-from rest_framework.authtoken.models import Token
-
 #To Login
 @api_view(['POST'])
 def user_login(request):
@@ -67,7 +54,6 @@ def user_login(request):
 
     
 #To Logout
-from rest_framework.decorators import api_view
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def user_logout(request):
@@ -82,7 +68,6 @@ def user_logout(request):
         
 
 # For admin to assign roles to users.
-from rest_framework.decorators import api_view, permission_classes
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -106,9 +91,6 @@ def assign_role(request):
         else:
             return Response({'detail': 'You do not have permission to assign roles.'}, status=status.HTTP_403_FORBIDDEN)
 
-
-
-
 from .permissions import IsAdminUser, IsInstructorUser, IsLearnerUser
 #For admin to see all active users(not deleted)
 @api_view(['GET'])
@@ -131,7 +113,6 @@ def list_instructor_users(request):
         return Response(serializer.data)
     return Response({'detail': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
 
-from rest_framework.decorators import api_view, permission_classes
 #For learner to see their own profile
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsLearnerUser])
@@ -141,7 +122,7 @@ def list_own_user(request):
     return Response(serializer.data)
 
 #For instructor to see their own profile
-from rest_framework.decorators import api_view, permission_classes
+
 @api_view(['GET'])
 @permission_classes([IsAuthenticated, IsInstructorUser])
 def list_own_instructor_user(request):
@@ -150,7 +131,6 @@ def list_own_instructor_user(request):
     return Response(serializer.data)
 
 #To update a user data
-from rest_framework.decorators import api_view, permission_classes
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_user(request):
@@ -200,24 +180,11 @@ def list_deleted_users(request):
 
 
 #Email Verification for password change
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
 from .models import PasswordResetToken
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.utils.crypto import get_random_string
 from rest_framework.permissions import AllowAny
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
-
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-from rest_framework import status
 from django.contrib.auth import get_user_model
 
 User = get_user_model()
@@ -235,7 +202,7 @@ def request_password_reset(request):
 
         send_mail(
             'Password Reset Request',
-            f'Click the link to reset your password: http://localhost:8000/api/reset_password/{token}/',
+            f'Click the link to reset your password: http://localhost:8000/reset_password/{token}/',
             'noreply@example.com',
             [user.email],
             fail_silently=False,
@@ -276,3 +243,166 @@ def reset_password(request, token):
             return Response({'message': 'Token has expired.'})
     except PasswordResetToken.DoesNotExist:
         return Response({'message': 'Token is invalid.'})
+
+
+# Teams 
+from .models import Team
+from .serializers import TeamSerializer
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_team(request):
+    if request.method == 'POST':
+        # Check if the requesting user has an 'admin' role
+        if request.user.role.role == 'admin':
+            team_name = request.data.get('name')  # Extract the team name from the JSON data
+            description = request.data.get('description')  # Extract the team description
+            
+            # Check if a team with the same name already exists
+            if Team.objects.filter(name=team_name).exists():
+                return Response({'detail': 'A team with this name already exists.'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Get the name of the user who created the team
+            created_by = request.user.get_full_name()
+            
+            # Create a new team with the provided data
+            team = Team(name=team_name, description=description, created_by=created_by)
+            team.save()
+
+            # Serialize the team object to include in the response
+            serialized_team = TeamSerializer(team)
+
+            return Response(serialized_team.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response({'detail': 'You do not have permission to create teams.'}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_team(request):
+    if request.method == 'DELETE':
+        # Check if the requesting user has an 'admin' role
+        if request.user.role.role == 'admin':
+            team_id = request.data.get('team_id')
+            try:
+                team = Team.objects.get(pk=team_id)
+                team.is_deleted = True
+                team.save()
+                return Response({'message': f'Team {team.name} marked as deleted.'}, status=status.HTTP_204_NO_CONTENT)
+            except Team.DoesNotExist:
+                return Response({'detail': 'Team does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'detail': 'You do not have permission to delete teams.'}, status=status.HTTP_403_FORBIDDEN)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def list_deleted_teams(request):
+    deleted_teams = Team.objects.filter(is_deleted=True)
+    serializer = TeamSerializer(deleted_teams, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def add_users_to_team(request):
+    if request.method == 'POST':
+        # Check if the requesting user has an 'admin' role
+        if request.user.role.role == 'admin':
+            team_name = request.data.get('team_name')
+            user_emails = request.data.get('user_emails')  # Expect a list of user emails
+
+            try:
+                team = Team.objects.get(name=team_name)
+            except Team.DoesNotExist:
+                return Response({'detail': 'Team not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            if team.is_deleted:
+                return Response({'detail': 'Team is deleted and cannot accept users.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            added_users = []
+            not_found_users = []
+
+            for user_email in user_emails:
+                try:
+                    user = CustomUser.objects.get(email=user_email)
+                    team.users.add(user)
+                    user.teams.add(team)  # Add the team to the user
+                    added_users.append(user_email)
+                except CustomUser.DoesNotExist:
+                    not_found_users.append(user_email)
+
+            response_data = {
+                'added_users': added_users,
+                'not_found_users': not_found_users,
+                'detail': 'Users added to the team successfully.',
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'You do not have permission to add users to teams.'}, status=status.HTTP_403_FORBIDDEN)
+
+
+from .serializers import CustomUserSerializer  
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_teams_data(request):
+    if request.method == 'GET':
+        # Retrieve teams where `is_deleted` is False and serialize the data
+        teams = Team.objects.filter(is_deleted=False)
+        serializer = TeamSerializer(teams, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+
+from course.models import Courses  # Import the Courses model
+@api_view(['POST'])
+def add_courses_to_team(request):
+    if request.method == 'POST':
+        team_id = request.data.get('team_id')
+        course_ids = request.data.get('course_ids', [])
+
+        try:
+            team = Team.objects.get(pk=team_id)
+        except Team.DoesNotExist:
+            return Response({'detail': 'Team not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        for course_id in course_ids:
+            try:
+                course = Courses.objects.get(pk=course_id)
+                team.courses.add(course)
+            except Courses.DoesNotExist:
+                return Response({'detail': f'Course with ID {course_id} not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        return Response({'detail': 'Courses added to the team successfully'}, status=status.HTTP_200_OK)
+
+
+
+from django.contrib.auth import get_user_model
+@api_view(['POST'])
+def assign_course_to_users(request):
+    if request.method == 'POST':
+        email_list = request.data.get('email_list', [])
+        course_name = request.data.get('course_name')
+
+        course = Courses.objects.filter(name=course_name).first()
+        if course is None:
+            return Response({'detail': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        assigned_users = []
+        not_found_users = []
+
+        for email in email_list:
+            try:
+                user = get_user_model().objects.get(email=email)
+                user.courses.add(course)
+                assigned_users.append(email)
+            except get_user_model().DoesNotExist:
+                not_found_users.append(email)
+
+        response_data = {
+            'assigned_users': assigned_users,
+            'not_found_users': not_found_users,
+            'detail': f'Course "{course_name}" assigned to users',
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)

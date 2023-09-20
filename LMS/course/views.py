@@ -450,6 +450,7 @@ class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
             return super().update(request, *args, **kwargs)
         
 
+
     def destroy(self, request, *args, **kwargs):
             # Check if the requesting user has an 'admin' role
             if request.user.role.role != 'admin':
