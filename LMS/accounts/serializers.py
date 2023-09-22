@@ -2,7 +2,7 @@
 
 from rest_framework import serializers
 from .models import CustomUser, Role
-from course.models import Courses
+from course.models import Course
 from course.serializers import CourseSerializer
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -40,11 +40,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-<<<<<<< HEAD
         fields = ['id','username', 'email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'updated_at', 'role']  # Include 'role' here
-=======
-        fields = ['id','username', 'email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'updated_at', 'role','teams','courses']  # Include 'role' here
->>>>>>> a683fc0b773e8d5d143eb51afce6820ba2c0acb7
 
 #For User With Roles
 class UserWithRoleSerializer(serializers.ModelSerializer):

@@ -14,7 +14,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-from course.models import Category, Courses 
+from course.models import Category, Course
 
     
 class CustomUser(AbstractUser):
@@ -61,8 +61,8 @@ class CustomUser(AbstractUser):
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(default=timezone.now)
     teams = models.ManyToManyField('Team', related_name='members', blank=True)
-    courses = models.ManyToManyField('course.Courses', related_name='courses', blank=True)
-    
+    courses = models.ManyToManyField('course.Course', related_name='courses', blank=True)
+
 
     def __str__(self):
         return self.username
@@ -114,7 +114,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-from course.models import Courses
+# from course.models import Course
 from django.db import models
 from django.utils import timezone
 
@@ -143,7 +143,7 @@ class Team(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
     users = models.ManyToManyField(CustomUser, related_name='team_users', blank=True)
-    courses = models.ManyToManyField(Courses, related_name='teams', blank=True)
+    courses = models.ManyToManyField(Course, related_name='teams', blank=True)
     
 
 

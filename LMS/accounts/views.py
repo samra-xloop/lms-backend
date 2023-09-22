@@ -354,7 +354,7 @@ def list_teams_data(request):
 
 
 
-from course.models import Courses  # Import the Courses model
+from course.models import Course  # Import the Courses model
 @api_view(['POST'])
 def add_courses_to_team(request):
     if request.method == 'POST':
@@ -368,9 +368,9 @@ def add_courses_to_team(request):
 
         for course_id in course_ids:
             try:
-                course = Courses.objects.get(pk=course_id)
+                course = Course.objects.get(pk=course_id)
                 team.courses.add(course)
-            except Courses.DoesNotExist:
+            except Course.DoesNotExist:
                 return Response({'detail': f'Course with ID {course_id} not found'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response({'detail': 'Courses added to the team successfully'}, status=status.HTTP_200_OK)
@@ -384,7 +384,7 @@ def assign_course_to_users(request):
         email_list = request.data.get('email_list', [])
         course_name = request.data.get('course_name')
 
-        course = Courses.objects.filter(name=course_name).first()
+        course = Course.objects.filter(name=course_name).first()
         if course is None:
             return Response({'detail': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
 
