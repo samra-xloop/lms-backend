@@ -406,3 +406,100 @@ def assign_course_to_users(request):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+
+#Remove Users from Teams
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_users_from_team(request):
+    if request.method == 'POST':
+        # Check if the requesting user has an 'admin' role
+        if request.user.role.role == 'admin':
+            team_name = request.data.get('team_name')
+            user_emails = request.data.get('user_emails')  # Expect a list of user emails
+
+            try:
+                team = Team.objects.get(name=team_name)
+            except Team.DoesNotExist:
+                return Response({'detail': 'Team not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+            if team.is_deleted:
+                return Response({'detail': 'Team is deleted and cannot remove users.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            removed_users = []
+            not_found_users = []
+
+            for user_email in user_emails:
+                try:
+                    user = CustomUser.objects.get(email=user_email)
+                    team.users.remove(user)  # Remove the user from the team
+                    user.teams.remove(team)  # Remove the team from the user
+                    removed_users.append(user_email)
+                except CustomUser.DoesNotExist:
+                    not_found_users.append(user_email)
+
+            response_data = {
+                'removed_users': removed_users,
+                'not_found_users': not_found_users,
+                'detail': 'Users removed from the team successfully.',
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({'detail': 'You do not have permission to remove users from teams.'}, status=status.HTTP_403_FORBIDDEN)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def remove_courses_from_team(request):
+    if request.method == 'POST':
+        team_id = request.data.get('team_id')
+        course_ids = request.data.get('course_ids', [])
+
+        try:
+            team = Team.objects.get(pk=team_id)
+        except Team.DoesNotExist:
+            return Response({'detail': 'Team not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        removed_courses = []
+        not_found_courses = []
+
+        for course_id in course_ids:
+            try:
+                course = Courses.objects.get(pk=course_id)
+                team.courses.remove(course)  # Remove the course from the team
+                removed_courses.append(course_id)
+            except Courses.DoesNotExist:
+                not_found_courses.append(course_id)
+
+        return Response({'removed_courses': removed_courses, 'not_found_courses': not_found_courses, 'detail': 'Courses removed from the team successfully'}, status=status.HTTP_200_OK)
+
+
+
+@api_view(['POST'])
+def remove_courses_from_users(request):
+    if request.method == 'POST':
+        email_list = request.data.get('email_list', [])
+        course_name = request.data.get('course_name')
+
+        course = Courses.objects.filter(name=course_name).first()
+        if course is None:
+            return Response({'detail': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        removed_users = []
+        not_found_users = []
+
+        for email in email_list:
+            try:
+                user = get_user_model().objects.get(email=email)
+                user.courses.remove(course)  # Remove the course from the user
+                removed_users.append(email)
+            except get_user_model().DoesNotExist:
+                not_found_users.append(email)
+
+        response_data = {
+            'removed_users': removed_users,
+            'not_found_users': not_found_users,
+            'detail': f'Course "{course_name}" removed from users',
+        }
+
+        return Response(response_data, status=status.HTTP_200_OK)
