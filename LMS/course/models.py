@@ -1,112 +1,249 @@
 from django.db import models
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.utils import timezone
-
-
-
-
+from accounts.models import CustomUser
 class Category(models.Model):
-    
-    TRACK_1 = 'DEG'
-    TRACK_2 = 'CND'
-    TRACKS = (
-        (TRACK_1, 'Deg'),
-        (TRACK_2, 'Cnd')
-    )
-    name = models.CharField(max_length=100, choices=TRACKS, default=TRACK_1)
-    description = models.TextField()
-    
-    def __str__(self):
-        return self.name    
 
-
-class Courses(models.Model):
-    categories = models.ForeignKey(Category, on_delete=models.CASCADE)  
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='category_user')
+    # user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    # slug = models.SlugField()
+    title = models.CharField(max_length=100, unique=True)
+    description = models.TextField(null=True, blank=True)
+    parent = models.ForeignKey('self', on_delete=models.CASCADE ,default=None, null=True, blank=True)
+    is_updated = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
-    
-    
-
-    
-
-
+    is_delete = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='category_updated_by')
 
     def __str__(self):
-        return self.name
+        return self.title     
+
+class Course(models.Model):
+
+    title = models.CharField(max_length=100, unique=True)
+    description = models.TextField(null=True, blank=True)
+    # many courses can have same category.
+    category = models.ManyToManyField(Category)      
+    # slug = models.SlugField()
+    created_at = models.DateTimeField(default=timezone.now)
+    is_updated = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    # author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='user_courses')   
+    is_active = models.BooleanField(default=False)
+    # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    is_delete = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now=True)
+    course_image = models.ImageField(upload_to='course_images/', null=True, blank=True)
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='course_author')
+    updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='course_updated_by')
+    
+    def __str__(self):
+        return self.title
 
 class Module(models.Model):
-    course = models.ForeignKey(Courses, on_delete=models.CASCADE, default=None)  
-    name = models.CharField(max_length=100)
-    start_date = models.DateTimeField(default=timezone.now)
-    end_date = models.DateTimeField(default=None)
-    is_active = models.BooleanField(default=True)
-    is_delete = models.BooleanField(default=False)
 
-
-    def __str__(self):
-        return self.name
-
-class Units(models.Model):
-    modules = models.ForeignKey(Module, on_delete=models.CASCADE)
-    name = models.CharField(max_length=100)
-    description = models.TextField()
-    start_date = models.DateTimeField(default=timezone.now)
-    end_date = models.DateTimeField(default=None)
-    is_delete = models.BooleanField(default=False)
-    deleted_at = models.DateTimeField(null=True, blank=True)
-
-
-    def __str__(self):
-        return self.name
-
-class Videos(models.Model):
-    unit = models.ForeignKey(Units, on_delete=models.CASCADE)
-    video = models.FileField(upload_to='videos/', blank=True, null=True)
-
-class Files(models.Model):
-    unit = models.ForeignKey(Units, on_delete=models.CASCADE)
-    file = models.FileField(upload_to='Files/', blank=True, null=True)
-
-class Quiz(models.Model):
-    course = models.ForeignKey(Courses, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
-    
-    description = models.TextField()
-    created_at = models.DateTimeField(default=timezone.now, editable=False)
+    # one course can have multiple modules
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)  
+    # slug = models.SlugField()
+    # description = models.TextField()
+    created_at = models.DateTimeField(default=timezone.now)
+    is_updated = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
-   
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    is_active = models.BooleanField(default=False)
+    is_delete = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now=True) 
+    # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='module_updated_by')
 
-class Quiz_Question(models.Model):
-    quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
-    question_text = models.TextField()
+    class Meta:
+        unique_together = ('course', 'title')
 
-class Question_Option(models.Model):
-    question = models.ForeignKey(Quiz_Question, on_delete=models.CASCADE)
-    option_text = models.TextField()
-    is_correct_option = models.BooleanField(default=False)
+    def __str__(self):
+        return self.title
 
-# need clarity for this model.
-class Quiz_Submission(models.Model):
-    row_1 = models.TextField()
-    row_2 = models.TextField()
-    row_3 = models.TextField()        
+class Unit(models.Model):
 
-#get it confirmed
+    # modules = models.ForeignKey(Module, on_delete=models.CASCADE)
+    title = models.CharField(max_length=100)
+    module = models.ForeignKey(Module, on_delete=models.CASCADE)
+    # slug = models.SlugField()
+    description = models.TextField(null=True, blank=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    created_at = models.DateTimeField(default=timezone.now)
+    is_updated = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=False)
+    is_delete = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now=True)
+    # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='unit_updated_by')
+
+    class Meta:
+        unique_together = ('module', 'title')
+
+    def __str__(self):
+        return self.title
+
+class Video(models.Model):
+
+    title = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    url = models.URLField()
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    video = models.FileField(upload_to='videos/', blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    is_updated = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=False)
+    is_delete = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now=True)
+    # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='video_updated_by')
+
+    class Meta:
+        unique_together = ('unit', 'title')
+
+
+    def __str__(self):
+        return self.title
+
+class File(models.Model):
+
+    title = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    url = models.URLField()
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    file = models.FileField(upload_to='Files/', blank=True, null=True)
+    created_at = models.DateTimeField(default=timezone.now)
+    is_updated = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=False)
+    is_delete = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now=True)
+    # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='files_updated_by')
+
+    class Meta:
+        unique_together = ('unit', 'title')
+
+
+    def __str__(self):
+        return self.title
+
+# class Quiz(models.Model):
+#     course = models.ForeignKey(Courses, on_delete=models.CASCADE)
+#     title = models.CharField(max_length=100)
+#     # slug = models.SlugField()
+#     description = models.TextField()
+#     created_at = models.DateTimeField(default=timezone.now, editable=False)
+#     updated_at = models.DateTimeField(auto_now=True)
+#     # start_time = models.DateTimeField(default=timezone.now)
+#     # end_time = models.DateTimeField(default=None)
+#     start_time = models.TimeField()
+#     end_time = models.TimeField()
+#     is_delete = models.BooleanField(default=False)
+#     duration = models.TimeField(default=None)
+
+# class Quiz_Question(models.Model):
+#     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE)
+#     question_text = models.TextField()
+#     question_image = models.ImageField(upload_to='images/', null=True, blank=True)
+# #need clarity here
+#     question_type = models.CharField(max_length=50, default=None)
+
+# class Question_Option(models.Model):
+#     question = models.ForeignKey(Quiz_Question, on_delete=models.CASCADE)
+#     option_text = models.TextField()
+#     is_correct_option = models.BooleanField(default=False)
+
+# # need clarity for this model.
+# class Quiz_Submission(models.Model):
+#     quiz = models.ForeignKey(Quiz, on_delete=models.CASCADE, default=None)
+#     # user = models.ForeignKey(user, on_delete=models.CASCADE)
+#     started_at = models.DateTimeField(default=timezone.now)
+#     time_taken_to_complete = models.DateTimeField(default=timezone.now)
+#     score = models.CharField(max_length=100, default=None)
+
+
+# #get it confirmed
 class Assignment(models.Model):
-    name = models.CharField(max_length=100)
-    course = models.ForeignKey(Courses, on_delete=models.CASCADE)
-    due_date = models.DateTimeField()
-    created_at = models.DateTimeField(default=timezone.now, editable= False)
-    updated_at = models.DateTimeField(auto_now=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    updated_at = models.DateTimeField(auto_now=True)
 
+    title = models.CharField(max_length=100)
+    description = models.TextField(null=True, blank=True)
+    unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
+    due_date = models.DateTimeField()
+    created_at = models.DateTimeField(default=timezone.now)
+    is_updated = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_active = models.BooleanField(default=False)
+    is_team_submission_allowed = models.BooleanField(default=False)
+    Number_of_members = models.IntegerField(default=None)
+    is_delete = models.BooleanField(default=False)
+    deleted_at = models.DateTimeField(auto_now=True)
+    # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    marks = models.CharField(max_length=10)
+    updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='assignment_updated_by')
+
+    class Meta:
+        unique_together = ('unit', 'title')
+
+    def __str__(self):
+        return self.title
+    
 
 class Assignment_Submission(models.Model):
-    submiission_date = models.DateTimeField()
+
+    submitted_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='assignment_submission_done_by')
+    assignment = models.ForeignKey(Assignment,on_delete=models.CASCADE)
+    submission_date = models.DateTimeField(auto_now=True, editable=False)
+    content = models.FileField(upload_to='content/')
+
+class Assignment_Partners_Group(models.Model):
+
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    submitted_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='assignment_submitted_by')
+
+class Assignment_Partners(models.Model):
+
+    partners = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='partner')
+    assignment_group = models.ForeignKey(Assignment_Partners_Group, on_delete=models.CASCADE)
+    # submitted_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+
+class Assignment_Grading(models.Model):
+
+    # user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='assignment_doer')
+    marks = models.CharField(max_length=3)
+    grading_datetime = models.DateTimeField(auto_now=True)
+    comments = models.TextField(null=True, blank=True)
+    assignment_status = (('pass','PASS'),
+                         ('fail','FAIL'),
+                         ('pending','PENDING'))
+
+    status = models.CharField(max_length=50, choices=assignment_status)
+    assignment_submission = models.ForeignKey(Assignment_Submission, on_delete=models.CASCADE)
+    # grader = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    grader = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='assignment_grader')
+
+class Enrollment(models.Model):
+
+    # user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='enrolled_user')
+    course = models.ManyToManyField(Course)
+    enrollment_start_date = models.DateTimeField()
+    enrollment_end_date = models.DateTimeField()
+    is_active = models.BooleanField(default=False) 
+
+#QUIZ RETAKE model needs to be included. 
+
+
+
 
 
