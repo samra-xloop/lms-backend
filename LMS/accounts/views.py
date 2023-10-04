@@ -132,7 +132,7 @@ def list_own_instructor_user(request):
 #To update a user data
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
-def update_user_with_role(request):
+def update_user(request):
     if request.method == 'PUT':
         # Check if the requesting user has an 'admin' role
         if request.user.role.role == 'admin':
@@ -144,7 +144,8 @@ def update_user_with_role(request):
                 if user.is_deleted:
                     return Response({'detail': 'User is marked as deleted and cannot be updated.'}, status=status.HTTP_400_BAD_REQUEST)
                 
-                serializer = UserSerializer(user, data=request.data, partial=True)
+                # Update the user and role using the UpdateUserWithRoleSerializer
+                serializer = UpdateUserWithRoleSerializer(user, data=request.data, partial=True)
                 if serializer.is_valid():
                     serializer.save()
                     return Response(serializer.data, status=status.HTTP_200_OK)

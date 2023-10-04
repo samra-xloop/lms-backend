@@ -104,6 +104,9 @@ class TeamWithUsersSerializer(serializers.ModelSerializer):
 from rest_framework import serializers
 from .models import CustomUser, Role
 
+from rest_framework import serializers
+from .models import CustomUser, Role
+
 class UpdateUserWithRoleSerializer(serializers.ModelSerializer):
     role = serializers.CharField(required=False)  # Accept role as an optional field
 
@@ -129,7 +132,6 @@ class UpdateUserWithRoleSerializer(serializers.ModelSerializer):
             role.save()
 
         return instance
-
 
 class ListUserSerializer(serializers.ModelSerializer):
     role = serializers.StringRelatedField(source='role.role')
