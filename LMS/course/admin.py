@@ -6,5 +6,5 @@ from .models import *
 
 admin.site.register(Category)
 admin.site.register(Module)
-admin.site.register(Units)
-admin.site.register(Courses)
+admin.site.register(Unit)
+admin.site.register(Course)
