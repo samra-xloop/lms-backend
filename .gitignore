@@ -26,3 +26,4 @@ venv.bak/
 # Windows file configs
 *desktop.ini 
 db.sqlite3
+/migrations/

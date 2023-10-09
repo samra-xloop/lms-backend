@@ -12,6 +12,7 @@ from .serializers import UserWithRoleSerializer,DeletedUserSerializer
 import secrets
 from django.utils import timezone
 #To Register New User
+
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def register_user(request):
@@ -98,6 +99,15 @@ from .permissions import IsAdminUser, IsInstructorUser, IsLearnerUser
 def list_all_users(request):
     all_users = CustomUser.objects.filter(is_deleted=False)
     serializer = UserSerializer(all_users, many=True)
+    return Response(serializer.data)
+
+
+from django.shortcuts import get_object_or_404
+@api_view(['GET'])
+@permission_classes([IsAuthenticated, IsAdminUser])
+def list_single_user(request, user_id):
+    user = get_object_or_404(CustomUser, id=user_id, is_deleted=False)
+    serializer = UserSerializer(user)
     return Response(serializer.data)
 
 
@@ -465,10 +475,10 @@ def remove_courses_from_team(request):
 
         for course_id in course_ids:
             try:
-                course = Courses.objects.get(pk=course_id)
+                course = Course.objects.get(pk=course_id)
                 team.courses.remove(course)  # Remove the course from the team
                 removed_courses.append(course_id)
-            except Courses.DoesNotExist:
+            except Course.DoesNotExist:
                 not_found_courses.append(course_id)
 
         return Response({'removed_courses': removed_courses, 'not_found_courses': not_found_courses, 'detail': 'Courses removed from the team successfully'}, status=status.HTTP_200_OK)
@@ -481,7 +491,7 @@ def remove_courses_from_users(request):
         email_list = request.data.get('email_list', [])
         course_name = request.data.get('course_name')
 
-        course = Courses.objects.filter(name=course_name).first()
+        course = Course.objects.filter(name=course_name).first()
         if course is None:
             return Response({'detail': 'Course not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -503,3 +513,4 @@ def remove_courses_from_users(request):
         }
 
         return Response(response_data, status=status.HTTP_200_OK)
+

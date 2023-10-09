@@ -84,32 +84,98 @@ class AssignmentSerializer(ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin,
         model = Assignment 
         fields = '__all__'
 
+# class Assignment_SubmissionSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = Assignment_Submission
+#         fields = '__all__'
+
+from rest_framework import serializers
+from .models import Assignment_Submission, Assignment_Grading
+
+# class Assignment_GradingSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Assignment_Grading
+#         fields = '__all__'
+
+# class Assignment_SubmissionSerializer(serializers.ModelSerializer):
+#     grading = Assignment_GradingSerializer(read_only=True)  # Serializer for the related Assignment_Grading instance
+
+#     class Meta:
+#         model = Assignment_Submission
+#         fields = '__all__'
+
+#     def create(self, validated_data):
+#         # Create the Assignment_Submission instance
+#         assignment_submission = Assignment_Submission.objects.create(**validated_data)
+
+#         # Create an Assignment_Grading instance related to the submission
+#         grading_instance = Assignment_Grading.objects.create(
+#             assignment_submission=assignment_submission,
+#             # You can omit 'marks', 'status', 'grader' here to use the defaults from the model
+#         )
+
+#         return assignment_submission
+
+
+class Assignment_GradingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assignment_Grading
+        fields = '__all__'
+
+class Assignment_SubmissionCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Assignment_Submission
+        fields = '__all__'
+
+    def create(self, validated_data):
+        # Create the Assignment_Submission instance
+        assignment_submission = Assignment_Submission.objects.create(**validated_data)
+
+        # Create an Assignment_Grading instance related to the submission with default values
+        grading_instance = Assignment_Grading.objects.create(
+            assignment_submission=assignment_submission,
+            # Set default values here
+        )
+
+        return assignment_submission
+
 class Assignment_SubmissionSerializer(serializers.ModelSerializer):
+    grading = Assignment_GradingSerializer(read_only=True)  # Serializer for the related Assignment_Grading instance
 
     class Meta:
         model = Assignment_Submission
         fields = '__all__'
 
-class Assignment_Partners_GroupSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Assignment_Partners_Group
-        fields = '__all__'
+# class Assignment_Partners_GroupSerializer(serializers.ModelSerializer):
 
-class Assignment_PartnersSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Assignment_Partners_Group
+#         fields = '__all__'
 
-    class Meta:
-        model = Assignment_Partners
-        fields = '__all__'
+# class Assignment_PartnersSerializer(serializers.ModelSerializer):
 
-class Assignment_GradingSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Assignment_Partners
+#         # fields = '__all__'
+#         fields = ['id']
 
-    class Meta:
-        model = Assignment_Grading
-        fields = '__all__'
+# class Assignment_GradingSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = Assignment_Grading
+#         fields = '__all__'
 
 class EnrollmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Enrollment
         fields = '__all__'
+
+# class Assignment_StatusSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = Assignment_Status
+#         fields = '__all__'
+

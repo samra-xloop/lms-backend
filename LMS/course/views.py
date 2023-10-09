@@ -1,9 +1,12 @@
+from argparse import _ActionsContainer
 from course.models import *
 from .serializers import *
 from rest_framework import viewsets, status, generics
 from rest_framework.response import Response
 from accounts.permissions import *
 from django.shortcuts import get_object_or_404
+from rest_framework.decorators import action
+
 # Create your views here.
 
 class CategoryViewSet(viewsets.ModelViewSet):
@@ -44,7 +47,9 @@ class CategoryViewSet(viewsets.ModelViewSet):
             queryset = self.filter_queryset(self.get_queryset())
 
             if not queryset.exists():
-                return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+                # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
+
 
             serializer = self.get_serializer(queryset, many=True)
             return Response(serializer.data)
@@ -96,7 +101,9 @@ class CourseViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_404_NOT_FOUND)
+
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -148,7 +155,9 @@ class ModuleViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_404_NOT_FOUND)
+
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -200,7 +209,9 @@ class UnitViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_404_NOT_FOUND)
+
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -251,7 +262,8 @@ class VideoViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -302,7 +314,9 @@ class FileViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_404_NOT_FOUND)
+
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -385,7 +399,8 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -406,22 +421,141 @@ class AssignmentViewSet(viewsets.ModelViewSet):
             
             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+# class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
+#     queryset = Assignment_Submission.objects.all()
+#     serializer_class = Assignment_SubmissionSerializer
+#     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
+
+#     def create(self, request, *args, **kwargs):
+#             # Check if the requesting user has an 'admin' role
+#             if request.user.role.role != 'admin':
+#                 return Response({'detail': 'You do not have permission to create assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
+            
+#             serializer = Assignment_SubmissionSerializer(data=request.data)
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+#     def get_queryset(self):
+#         user = self.request.user
+
+#         # Example: Filter queryset based on user's role
+#         if user.role.role == 'admin':
+#             return Assignment_Submission.objects.all()
+#         else:
+#             # Filter queryset for non-admin users
+#             return Assignment_Submission.objects.filter(user=user)
+
+#     def list(self, request, *args, **kwargs):
+#         queryset = self.filter_queryset(self.get_queryset())
+
+#         if not queryset.exists():
+#             # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+#                 return Response([], status=status.HTTP_404_NOT_FOUND)
+
+#         serializer = self.get_serializer(queryset, many=True)
+#         return Response(serializer.data)
+
+#         # Override the update method to check permissions
+#     def update(self, request, *args, **kwargs):
+#             # Check if the requesting user has an 'admin' role
+#             if request.user.role.role != 'admin':
+#                 return Response({'detail': 'You do not have permission to update assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
+            
+#             return super().update(request, *args, **kwargs)        
+
+#     def destroy(self, request, *args, **kwargs):
+#             # Check if the requesting user has an 'admin' role
+#             if request.user.role.role != 'admin':
+#                 return Response({'detail': 'You do not have permission to delete assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
+            
+#             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+# from django.forms.models import model_to_dict
+
+# class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
+#     queryset = Assignment_Submission.objects.all()
+#     serializer_class = Assignment_SubmissionSerializer
+#     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
+
+    # def create(self, request, *args, **kwargs):
+    #         # Check if the requesting user has an 'admin' role
+    #         if request.user.role.role != 'admin':
+    #             return Response({'detail': 'You do not have permission to create assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
+            
+    #         serializer = Assignment_SubmissionSerializer(data=request.data)
+    #         if serializer.is_valid():
+    #             print("served")
+    #             submission = serializer.save()
+    #             # Assuming `submission` is your Assignment_Submission object
+    #             submission_dict = model_to_dict(submission)
+
+    #             print(submission_dict)
+    #             print(submission_dict['assignment'])
+
+    #             # Create an Assignment_Grading instance related to the submission
+    #             grading_data = {
+    #                 'assignment_submission': submission_dict['assignment'],
+    #                 'user': submission_dict['submitted_by'],
+    #                 'marks':2,
+    #                 'status':'pending',
+    #                 'grader':2
+    #             }
+    #             print("what is the problem")
+    #             grading_serializer = Assignment_GradingSerializer(data=grading_data)
+    #             print("yahan")
+    #             if grading_serializer.is_valid():
+    #                 print("sahi cahl raha hai")
+    #                 try:
+    #                     grading_serializer.save()
+    #                 except Exception as e:
+    #                     print(e)
+
+    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # def create(self, request, *args, **kwargs):
+    #     # Check if the requesting user has an 'admin' role
+    #     if request.user.role.role != 'admin':
+    #         return Response({'detail': 'You do not have permission to create assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
+
+    #     serializer = Assignment_SubmissionSerializer(data=request.data)
+    #     if serializer.is_valid():
+    #         submission = serializer.save()
+
+    #         # You don't need to extract fields manually, the serializer already handles it
+    #         # Create an Assignment_Grading instance related to the submission using defaults
+    #         grading_serializer = Assignment_GradingSerializer(data={'assignment_submission': submission})
+            
+    #         if grading_serializer.is_valid():
+    #             grading_serializer.save()
+    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
     queryset = Assignment_Submission.objects.all()
     serializer_class = Assignment_SubmissionSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_serializer_class(self):
+        if self.action == 'create':
+            return Assignment_SubmissionCreateSerializer
+        return Assignment_SubmissionSerializer
 
     def create(self, request, *args, **kwargs):
-            # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to create assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
-            
-            serializer = Assignment_SubmissionSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+        if request.user.role.role != 'admin':
+            return Response({'detail': 'You do not have permission to create assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
     def get_queryset(self):
         user = self.request.user
 
@@ -436,7 +570,8 @@ class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
         queryset = self.filter_queryset(self.get_queryset())
 
         if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -447,119 +582,118 @@ class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
             if request.user.role.role != 'admin':
                 return Response({'detail': 'You do not have permission to update assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
             
-            return super().update(request, *args, **kwargs)
-        
-
+            return super().update(request, *args, **kwargs)        
 
     def destroy(self, request, *args, **kwargs):
             # Check if the requesting user has an 'admin' role
             if request.user.role.role != 'admin':
                 return Response({'detail': 'You do not have permission to delete assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
             
-            return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)    
-
-
-class Assignment_Partners_GroupViewSet(viewsets.ModelViewSet):
-    queryset = Assignment_Partners_Group.objects.all()
-    serializer_class = Assignment_Partners_GroupSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
-
-    def create(self, request, *args, **kwargs):
-            # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to create assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
-            
-            serializer = Assignment_Partners_GroupSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-        
-    def get_queryset(self):
-        user = self.request.user
-
-        # Example: Filter queryset based on user's role
-        if user.role.role == 'admin':
-            return Assignment_Submission.objects.all()
-        else:
-            # Filter queryset for non-admin users
-            return Assignment_Submission.objects.filter(user=user)
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-
-        if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
-
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-
-        # Override the update method to check permissions
-    def update(self, request, *args, **kwargs):
-            # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to update assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
-            
-            return super().update(request, *args, **kwargs)
-        
-
-    def destroy(self, request, *args, **kwargs):
-            # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to delete assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
-            
             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-class Assignment_PartnersViewSet(viewsets.ModelViewSet):
-    queryset = Assignment_Partners.objects.all()
-    serializer_class = Assignment_PartnersSerializer
-    permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
+# class Assignment_Partners_GroupViewSet(viewsets.ModelViewSet):
+#     queryset = Assignment_Partners_Group.objects.all()
+#     serializer_class = Assignment_Partners_GroupSerializer
+#     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
 
-    def create(self, request, *args, **kwargs):
-            # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to create assignment_partners.'}, status=status.HTTP_403_FORBIDDEN)
+#     def create(self, request, *args, **kwargs):
+#             # Check if the requesting user has an 'admin' role
+#             if request.user.role.role != 'admin':
+#                 return Response({'detail': 'You do not have permission to create assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
             
-            serializer = Assignment_PartnersSerializer(data=request.data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#             serializer = Assignment_Partners_GroupSerializer(data=request.data)
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         
-    def get_queryset(self):
-        user = self.request.user
+#     def get_queryset(self):
+#         user = self.request.user
 
-        # Example: Filter queryset based on user's role
-        if user.role.role == 'admin':
-            return Assignment_Submission.objects.all()
-        else:
-            # Filter queryset for non-admin users
-            return Assignment_Submission.objects.filter(user=user)
+#         # Example: Filter queryset based on user's role
+#         if user.role.role == 'admin':
+#             return Assignment_Partners_Group.objects.all()
+#         else:
+#             # Filter queryset for non-admin users
+#             return Assignment_Partners_Group.objects.filter(user=user)
 
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
+#     def list(self, request, *args, **kwargs):
+#         queryset = self.filter_queryset(self.get_queryset())
 
-        if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+#         if not queryset.exists():
+#             # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+#             return Response([], status=status.HTTP_404_NOT_FOUND)
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+#         serializer = self.get_serializer(queryset, many=True)
+#         return Response(serializer.data)
 
-        # Override the update method to check permissions
-    def update(self, request, *args, **kwargs):
-            # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to update assignment_partners.'}, status=status.HTTP_403_FORBIDDEN)
+#         # Override the update method to check permissions
+#     def update(self, request, *args, **kwargs):
+#             # Check if the requesting user has an 'admin' role
+#             if request.user.role.role != 'admin':
+#                 return Response({'detail': 'You do not have permission to update assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
             
-            return super().update(request, *args, **kwargs)
+#             return super().update(request, *args, **kwargs)
         
 
-    def destroy(self, request, *args, **kwargs):
-            # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to delete assignment_partners.'}, status=status.HTTP_403_FORBIDDEN)
+#     def destroy(self, request, *args, **kwargs):
+#             # Check if the requesting user has an 'admin' role
+#             if request.user.role.role != 'admin':
+#                 return Response({'detail': 'You do not have permission to delete assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
             
-            return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)        
+#             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+# class Assignment_PartnersViewSet(viewsets.ModelViewSet):
+#     queryset = Assignment_Partners.objects.all()
+#     serializer_class = Assignment_PartnersSerializer
+#     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
+
+#     def create(self, request, *args, **kwargs):
+#             # Check if the requesting user has an 'admin' role
+#             if request.user.role.role != 'admin':
+#                 return Response({'detail': 'You do not have permission to create assignment_partners.'}, status=status.HTTP_403_FORBIDDEN)
+            
+#             serializer = Assignment_PartnersSerializer(data=request.data)
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+#     def get_queryset(self):
+#         user = self.request.user
+
+#         # Example: Filter queryset based on user's role
+#         if user.role.role == 'admin':
+#             return Assignment_Partners.objects.all()
+#         else:
+#             # Filter queryset for non-admin users
+#             return Assignment_Partners.objects.filter(user=user)
+
+#     def list(self, request, *args, **kwargs):
+#         queryset = self.filter_queryset(self.get_queryset())
+
+#         if not queryset.exists():
+#             # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+#             return Response([], status=status.HTTP_404_NOT_FOUND)
+
+#         serializer = self.get_serializer(queryset, many=True)
+#         return Response(serializer.data)
+
+#         # Override the update method to check permissions
+#     def update(self, request, *args, **kwargs):
+#             # Check if the requesting user has an 'admin' role
+#             if request.user.role.role != 'admin':
+#                 return Response({'detail': 'You do not have permission to update assignment_partners.'}, status=status.HTTP_403_FORBIDDEN)
+            
+#             return super().update(request, *args, **kwargs)
+        
+
+#     def destroy(self, request, *args, **kwargs):
+#             # Check if the requesting user has an 'admin' role
+#             if request.user.role.role != 'admin':
+#                 return Response({'detail': 'You do not have permission to delete assignment_partners.'}, status=status.HTTP_403_FORBIDDEN)
+            
+#             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)        
 
 class Assignment_GradingViewSet(viewsets.ModelViewSet):
     queryset = Assignment_Grading.objects.all()
@@ -582,16 +716,17 @@ class Assignment_GradingViewSet(viewsets.ModelViewSet):
 
         # Example: Filter queryset based on user's role
         if user.role.role == 'admin':
-            return Assignment_Submission.objects.all()
+            return Assignment_Grading.objects.all()
         else:
             # Filter queryset for non-admin users
-            return Assignment_Submission.objects.filter(user=user)
+            return Assignment_Grading.objects.filter(user=user)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
         if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -633,16 +768,17 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
 
         # Example: Filter queryset based on user's role
         if user.role.role == 'admin':
-            return Assignment_Submission.objects.all()
+            return Enrollment.objects.all()
         else:
             # Filter queryset for non-admin users
-            return Assignment_Submission.objects.filter(user=user)
+            return Enrollment.objects.filter(user=user)
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
 
         if not queryset.exists():
-            return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response([], status=status.HTTP_404_NOT_FOUND)
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -671,7 +807,7 @@ class CourseByCategoryListView(generics.RetrieveAPIView):
 
     def get(self, request, *args, **kwargs):
         if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+                return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
         category_id = self.kwargs.get('category_id')
 
         try:
@@ -682,7 +818,9 @@ class CourseByCategoryListView(generics.RetrieveAPIView):
                 serializer = self.get_serializer(course, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'detail': 'No course found for this category.'}, status=status.HTTP_404_NOT_FOUND)
+                # return Response({'detail': 'No course found for this category.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
+
         
         except Category.DoesNotExist:
             return Response({'detail': 'Category not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -697,7 +835,7 @@ class ModuleByCourseListView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
 
         course_id = self.kwargs.get('course_id')
 
@@ -709,10 +847,13 @@ class ModuleByCourseListView(generics.RetrieveAPIView):
                 serializer = self.get_serializer(module, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'detail': 'No module found for this course.'}, status=status.HTTP_404_NOT_FOUND)
+                # return Response({'detail': 'No module found for this course.'}, status=status.HTTP_404_NOT_FOUND)
+                #  return Response({'detail': 'No module found for this course.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
+            
         
         except Course.DoesNotExist:
-            return Response({'detail': 'Module not found.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'detail': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
         
 class UnitByModuleListView(generics.RetrieveAPIView):
     queryset = Module.objects.all()  # Assuming you have an Author model
@@ -724,7 +865,7 @@ class UnitByModuleListView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
 
         module_id = self.kwargs.get('module_id')
 
@@ -736,7 +877,8 @@ class UnitByModuleListView(generics.RetrieveAPIView):
                 serializer = self.get_serializer(unit, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'detail': 'No unit found for this module.'}, status=status.HTTP_404_NOT_FOUND)
+                # return Response({'detail': 'No unit found for this module.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
         
         except Module.DoesNotExist:
             return Response({'detail': 'Module not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -751,7 +893,7 @@ class VideoByUnitListView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
 
         unit_id = self.kwargs.get('unit_id')
 
@@ -778,7 +920,7 @@ class FileByUnitListView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
                 
         unit_id = self.kwargs.get('unit_id')
 
@@ -790,7 +932,8 @@ class FileByUnitListView(generics.RetrieveAPIView):
                 serializer = self.get_serializer(file, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'detail': 'No files found for this unit.'}, status=status.HTTP_404_NOT_FOUND)
+                # return Response({'detail': 'No files found for this unit.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
         
         except Unit.DoesNotExist:
             return Response({'detail': 'Unit not found.'}, status=status.HTTP_404_NOT_FOUND)    
@@ -805,7 +948,7 @@ class AssignmentByUnitListView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
                 
         unit_id = self.kwargs.get('unit_id')
 
@@ -818,7 +961,8 @@ class AssignmentByUnitListView(generics.RetrieveAPIView):
                 serializer = self.get_serializer(assignment, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'detail': 'No Assignment found for this unit.'}, status=status.HTTP_404_NOT_FOUND)
+                # return Response({'detail': 'No Assignment found for this unit.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
         
         except Unit.DoesNotExist:
             return Response({'detail': 'Unit not found.'}, status=status.HTTP_404_NOT_FOUND)  
@@ -834,7 +978,7 @@ class Assignment_SubmissionByAssignmentListView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
                 
         assignment_id = self.kwargs.get('assignment_id')
 
@@ -847,63 +991,66 @@ class Assignment_SubmissionByAssignmentListView(generics.RetrieveAPIView):
                 serializer = self.get_serializer(assignment_submission, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'detail': 'No assignment_submissions found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
+                # return Response({'detail': 'No assignment_submissions found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
         
         except Assignment.DoesNotExist:
             return Response({'detail': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-class Assignment_Partners_GroupByAssignmentListView(generics.RetrieveAPIView):
-    queryset = Assignment.objects.all()  # Assuming you have an Author model
-    serializer_class = Assignment_Partners_GroupSerializer
-    lookup_url_kwarg = 'assignment_id'
-    permission_classes = [permissions.IsAuthenticated]
+# class Assignment_Partners_GroupByAssignmentListView(generics.RetrieveAPIView):
+#     queryset = Assignment.objects.all()  # Assuming you have an Author model
+#     serializer_class = Assignment_Partners_GroupSerializer
+#     lookup_url_kwarg = 'assignment_id'
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
+#     def get(self, request, *args, **kwargs):
 
-        if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+#         if request.user.role.role != 'admin':
+#             return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
 
-        assignment_id = self.kwargs.get('assignment_id')
+#         assignment_id = self.kwargs.get('assignment_id')
 
-        try:
-            assignment = Assignment.objects.get(id=assignment_id)
-            assignment_partners_group = Assignment_Partners_Group.objects.filter(assignment=assignment)
+#         try:
+#             assignment = Assignment.objects.get(id=assignment_id)
+#             assignment_partners_group = Assignment_Partners_Group.objects.filter(assignment=assignment)
             
-            if assignment_partners_group.exists():
-                serializer = self.get_serializer(assignment_partners_group, many=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({'detail': 'No assignment_partners found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
+#             if assignment_partners_group.exists():
+#                 serializer = self.get_serializer(assignment_partners_group, many=True)
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+#             else:
+#                 # return Response({'detail': 'No assignment_partners found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
+#                 return Response([], status=status.HTTP_404_NOT_FOUND)
         
-        except Assignment.DoesNotExist:
-            return Response({'detail': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
+#         except Assignment.DoesNotExist:
+#             return Response({'detail': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 
-class Assignment_PartnersByAssignment_Partners_GroupListView(generics.RetrieveAPIView):
-    queryset = Assignment_Partners_Group.objects.all()  # Assuming you have an Author model
-    serializer_class = Assignment_PartnersSerializer
-    lookup_url_kwarg = 'assignment_partner_group_id'
-    permission_classes = [permissions.IsAuthenticated]
+# class Assignment_PartnersByAssignment_Partners_GroupListView(generics.RetrieveAPIView):
+#     queryset = Assignment_Partners_Group.objects.all()  # Assuming you have an Author model
+#     serializer_class = Assignment_PartnersSerializer
+#     lookup_url_kwarg = 'assignment_group_id'
+#     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
+#     def get(self, request, *args, **kwargs):
 
-        if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+#         if request.user.role.role != 'admin':
+#             return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
 
-        assignment_partner_group_id = self.kwargs.get('assignment_partner_group_id')
+#         assignment_group_id = self.kwargs.get('assignment_group_id')
 
-        try:
-            assignment_partner_group = Assignment_Partners_Group.objects.get(id=assignment_partner_group_id)
-            assignment_partners = Assignment_Partners.objects.filter(assignment_partner_group=assignment_partner_group)
+#         try:
+#             assignment_group = Assignment_Partners_Group.objects.get(id=assignment_group_id)
+#             assignment_partners = Assignment_Partners.objects.filter(assignment_group=assignment_group)
             
-            if assignment_partners.exists():
-                serializer = self.get_serializer(assignment_partners, many=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({'detail': 'No assignment_partners found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
+#             if assignment_partners.exists():
+#                 serializer = self.get_serializer(assignment_partners, many=True)
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+#             else:
+#                 # return Response({'detail': 'No assignment_partners found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
+#                 return Response([], status=status.HTTP_404_NOT_FOUND)
         
-        except Assignment_Partners_Group.DoesNotExist:
-            return Response({'detail': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
+#         except Assignment_Partners_Group.DoesNotExist:
+#             return Response({'detail': 'Assignment_Partners_Group not found.'}, status=status.HTTP_404_NOT_FOUND)
 
 
 class Assignment_GradingByAssignment_SubmissionListView(generics.RetrieveAPIView):
@@ -915,7 +1062,7 @@ class Assignment_GradingByAssignment_SubmissionListView(generics.RetrieveAPIView
     def get(self, request, *args, **kwargs):
 
         if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
                 
         assignment_submission_id = self.kwargs.get('assignment_submission_id')
 
@@ -928,7 +1075,8 @@ class Assignment_GradingByAssignment_SubmissionListView(generics.RetrieveAPIView
                 serializer = self.get_serializer(assignment_grading, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'detail': 'No assignment_grading found for this assignment_submission.'}, status=status.HTTP_404_NOT_FOUND)
+                # return Response({'detail': 'No assignment_grading found for this assignment_submission.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
         
         except Assignment_Submission.DoesNotExist:
             return Response({'detail': 'Assignment_Submission not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -942,7 +1090,7 @@ class EnrollmentByCourseListView(generics.RetrieveAPIView):
     def get(self, request, *args, **kwargs):
 
         if request.user.role.role != 'admin':
-            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
         
         course_id = self.kwargs.get('course_id')
 
@@ -955,7 +1103,8 @@ class EnrollmentByCourseListView(generics.RetrieveAPIView):
                 serializer = self.get_serializer(enrollment, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({'detail': 'No enrollment found for this course.'}, status=status.HTTP_404_NOT_FOUND)
+                # return Response({'detail': 'No enrollment found for this course.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
         
         except Course.DoesNotExist:
             return Response({'detail': 'Course not found.'}, status=status.HTTP_404_NOT_FOUND)
@@ -981,3 +1130,97 @@ class SubCategoryListView(generics.ListAPIView):
 
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+# class Assignment_StatusView(generics.RetrieveAPIView):
+#     queryset = Assignment_Status.objects.all()
+#     serializer_class = Assignment_StatusSerializer
+
+#     def get(self, request, *args, **kwargs):
+#         status_param = request.query_params.get('status')
+#         if status_param not in ('pass', 'fail', 'pending'):
+#             return Response({"error": "Invalid status parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         status = Assignment_Submission.objects.filter(
+#             assignment_status__status=status_param
+#         )
+
+#         serializer = Assignment_StatusSerializer(status, many=True)
+#         return Response(serializer.data)
+
+
+
+# from rest_framework import viewsets, status
+# from rest_framework.decorators import action
+# from rest_framework.response import Response
+# from .models import Assignment_Submission, Assignment_Status
+# from .serializers import Assignment_SubmissionSerializer, Assignment_StatusSerializer
+
+# class AssignmentSubmissionViewSet(viewsets.ModelViewSet):
+#     queryset = Assignment_Submission.objects.all()
+#     serializer_class = Assignment_SubmissionSerializer
+
+#     @action(detail=False, methods=['GET'])
+#     def filter_by_status(self, request):
+#         status_param = request.query_params.get('status')
+
+#         if status_param not in ('pass', 'fail', 'pending'):
+#             return Response({"error": "Invalid status parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         if status_param == 'pass':
+#             submissions = Assignment_Submission.objects.filter(assignment_status__status='pass')
+#         elif status_param == 'fail':
+#             submissions = Assignment_Submission.objects.filter(assignment_status__status='fail')
+#         elif status_param == 'pending':
+#             submissions = Assignment_Submission.objects.filter(assignment_status__status='pending')
+#         else:
+#             # When the status parameter is not in ('pass', 'fail', 'pending'), return all submissions
+#             submissions = Assignment_Submission.objects.all()
+
+#         serializer = Assignment_SubmissionSerializer(submissions, many=True)
+#         return Response(serializer.data)
+
+# class AssignmentGradingViewSet(viewsets.ModelViewSet):
+#     queryset = Assignment_Grading.objects.all()
+#     serializer_class = Assignment_GradingSerializer
+
+#     # Custom action to filter assignments based on status
+#     @action(detail=False, methods=['GET'])
+#     def filter_by_status(self, request):
+#         status_param = request.query_params.get('status')
+
+#         if status_param not in ('pass', 'fail', 'pending'):
+#             return Response({"error": "Invalid status parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         if status_param == 'none':
+#             submissions = Assignment_Grading.objects.all()
+#         else:
+#             submissions = Assignment_Grading.objects.filter(status=status_param)
+
+#         serializer = Assignment_GradingSerializer(submissions, many=True)
+#         return Response(serializer.data)
+
+
+class AssignmentStatusViewSet(viewsets.ModelViewSet):
+    queryset = Assignment_Grading.objects.all()
+    serializer_class = Assignment_GradingSerializer
+    permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
+
+    # Custom action to filter assignments based on status
+    @action(detail=False, methods=['GET'])
+    def filter_by_status(self, request):
+        status_param = request.query_params.get('status')
+
+        if status_param not in ('pass', 'fail', 'pending', 'none'):
+            return Response({"error": "Invalid status parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if request.user.role.role != 'admin':
+            return Response({'detail': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if status_param == 'none':
+            submissions = Assignment_Grading.objects.all()
+        else:
+            submissions = Assignment_Grading.objects.filter(status=status_param)
+
+        serializer = Assignment_GradingSerializer(submissions, many=True)
+        return Response(serializer.data)

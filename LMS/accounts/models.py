@@ -52,6 +52,7 @@ class CustomUser(AbstractUser):
         ('O', 'Other'),
     ]
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='O')
+    # need to be corrected
     city = models.CharField(max_length=100, default='Unknown')
     country = models.CharField(max_length=100, default='Unknown')
     phone_number = models.CharField(max_length=20, default='Unknown')
