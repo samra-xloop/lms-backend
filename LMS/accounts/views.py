@@ -56,7 +56,6 @@ def user_login(request):
 
         if user and user.check_password(password):  # Check the password using check_password method
             token, _ = Token.objects.get_or_create(user=user)
-            
             try:
                 role = user.role.role
             except ObjectDoesNotExist:
@@ -71,6 +70,7 @@ def user_login(request):
                             status=status.HTTP_200_OK)
 
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+
 
     
     
@@ -103,7 +103,7 @@ from .models import CustomUser
 from .serializers import UserSerializer,UpdateUserWithRoleSerializer
 
 @api_view(['GET'])
-# @permission_classes([IsAuthenticated, IsAdminUser])
+@permission_classes([IsAuthenticated, IsAdminUser])
 def list_single_user(request, user_id):
     user = get_object_or_404(CustomUser, id=user_id, is_deleted=False)
     serializer = UserSerializer(user)
@@ -145,7 +145,7 @@ def list_own_instructor_user(request):
 def update_user(request):
     if request.method == 'PUT':
         # Check if the requesting user has an 'admin' role
-        if request.user.role.role == 'admin' :
+        if request.user.role.role == 'admin':
             email = request.data.get('email')
             try:
                 user = CustomUser.objects.get(email=email)
@@ -331,6 +331,7 @@ def add_users_to_team(request):
             team_name = request.data.get('team_name')
             user_ids = request.data.get('user_ids')  # Expect a list of user IDs
 
+
             try:
                 team = Team.objects.get(name=team_name)
             except Team.DoesNotExist:
@@ -346,7 +347,6 @@ def add_users_to_team(request):
             for user_id in user_ids:
                 try:
                     user = CustomUser.objects.get(id=user_id)
-
                     if user.is_deleted:
                         not_found_or_deleted_users.append(user_id)
                     else:
@@ -355,6 +355,7 @@ def add_users_to_team(request):
                         added_users.append(user_id)
                 except CustomUser.DoesNotExist:
                     not_found_or_deleted_users.append(user_id)
+
 
             response_data = {
                 'added_users': added_users,
@@ -628,5 +629,6 @@ def add_users_to_team(request):
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({'detail': 'You do not have permission to add users to teams.'}, status=status.HTTP_403_FORBIDDEN)
+
 
 """

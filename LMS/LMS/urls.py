@@ -57,6 +57,7 @@ schema_view_accounts = get_schema_view(
     public=True,
     permission_classes=(permissions.AllowAny,),
 )
+)
 
 # schema_view_course = get_schema_view(
 #     openapi.Info(

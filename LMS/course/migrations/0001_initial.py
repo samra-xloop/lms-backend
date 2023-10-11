@@ -7,7 +7,6 @@ import django.utils.timezone
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
     dependencies = [
@@ -16,7 +15,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name='Assignment',
+            name="Assignment",
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=100)),
@@ -33,7 +32,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Category',
+            name="Category",
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=100, unique=True)),
@@ -48,7 +47,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Course',
+            name="Course",
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=100, unique=True)),
@@ -68,7 +67,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name='Module',
+            name="Module",
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=100)),
@@ -84,11 +83,11 @@ class Migration(migrations.Migration):
                 ('updated_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='module_updated_by', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'unique_together': {('course', 'title')},
+                "unique_together": {("course", "title")},
             },
         ),
         migrations.CreateModel(
-            name='Unit',
+            name="Unit",
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=100)),
@@ -105,22 +104,37 @@ class Migration(migrations.Migration):
                 ('updated_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='unit_updated_by', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'unique_together': {('module', 'title')},
+                "unique_together": {("module", "title")},
             },
         ),
         migrations.CreateModel(
-            name='Enrollment',
+            name="Enrollment",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('enrollment_start_date', models.DateTimeField()),
-                ('enrollment_end_date', models.DateTimeField()),
-                ('is_active', models.BooleanField(default=False)),
-                ('course', models.ManyToManyField(to='course.course')),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='enrolled_user', to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("enrollment_start_date", models.DateTimeField()),
+                ("enrollment_end_date", models.DateTimeField()),
+                ("is_active", models.BooleanField(default=False)),
+                ("course", models.ManyToManyField(to="course.course")),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="enrolled_user",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Assignment_Submission',
+            name="Assignment_Submission",
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('submission_date', models.DateField(auto_now=True)),
@@ -144,17 +158,23 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.AddField(
-            model_name='assignment',
-            name='unit',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='course.unit'),
+            model_name="assignment",
+            name="unit",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE, to="course.unit"
+            ),
         ),
         migrations.AddField(
-            model_name='assignment',
-            name='updated_by',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='assignment_updated_by', to=settings.AUTH_USER_MODEL),
+            model_name="assignment",
+            name="updated_by",
+            field=models.ForeignKey(
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="assignment_updated_by",
+                to=settings.AUTH_USER_MODEL,
+            ),
         ),
         migrations.CreateModel(
-            name='Video',
+            name="Video",
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=100)),
@@ -171,11 +191,11 @@ class Migration(migrations.Migration):
                 ('updated_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='video_updated_by', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'unique_together': {('unit', 'title')},
+                "unique_together": {("unit", "title")},
             },
         ),
         migrations.CreateModel(
-            name='File',
+            name="File",
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('title', models.CharField(max_length=100)),
@@ -192,11 +212,11 @@ class Migration(migrations.Migration):
                 ('updated_by', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='files_updated_by', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'unique_together': {('unit', 'title')},
+                "unique_together": {("unit", "title")},
             },
         ),
         migrations.AlterUniqueTogether(
-            name='assignment',
-            unique_together={('unit', 'title')},
+            name="assignment",
+            unique_together={("unit", "title")},
         ),
     ]

@@ -1,11 +1,18 @@
 from django.db import models
 # from django.contrib.auth.models import User
 from django.utils import timezone
+<<<<<<< HEAD
 # from accounts.models import CustomUser
 from django.conf import settings
 class Category(models.Model):
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='category_user')
+=======
+from django.apps import apps
+class Category(models.Model):
+
+    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='category_user')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
     # user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     # slug = models.SlugField()
     title = models.CharField(max_length=100, unique=True)
@@ -14,8 +21,13 @@ class Category(models.Model):
     is_updated = models.BooleanField(null=True, blank=True)
     updated_at = models.DateField(auto_now=True)
     is_delete = models.BooleanField(default=False)
+<<<<<<< HEAD
     deleted_at = models.DateField(auto_now=True)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='category_updated_by')
+=======
+    deleted_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='category_updated_by')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
 
     def __str__(self):
         return self.title     
@@ -38,8 +50,13 @@ class Course(models.Model):
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateField(auto_now=True)
     course_image = models.ImageField(upload_to='course_images/', null=True, blank=True)
+<<<<<<< HEAD
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='course_author')
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='course_updated_by')
+=======
+    author = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='course_author')
+    updated_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='course_updated_by')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
     
     def __str__(self):
         return self.title
@@ -60,7 +77,11 @@ class Module(models.Model):
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateField(auto_now=True) 
     # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+<<<<<<< HEAD
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='module_updated_by')
+=======
+    updated_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='module_updated_by')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
 
     class Meta:
         unique_together = ('course', 'title')
@@ -84,7 +105,11 @@ class Unit(models.Model):
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateField(auto_now=True)
     # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+<<<<<<< HEAD
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='unit_updated_by')
+=======
+    updated_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='unit_updated_by')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
 
     class Meta:
         unique_together = ('module', 'title')
@@ -106,7 +131,11 @@ class Video(models.Model):
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateField(auto_now=True)
     # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+<<<<<<< HEAD
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='video_updated_by')
+=======
+    updated_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='video_updated_by')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
 
     class Meta:
         unique_together = ('unit', 'title')
@@ -129,7 +158,11 @@ class File(models.Model):
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateField(auto_now=True)
     # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+<<<<<<< HEAD
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='files_updated_by')
+=======
+    updated_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='files_updated_by')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
 
     class Meta:
         unique_together = ('unit', 'title')
@@ -191,7 +224,11 @@ class Assignment(models.Model):
     deleted_at = models.DateField(auto_now=True)
     # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     marks = models.CharField(max_length=10)
+<<<<<<< HEAD
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_updated_by')
+=======
+    updated_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='assignment_updated_by')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
 
     class Meta:
         unique_together = ('unit', 'title')
@@ -202,7 +239,11 @@ class Assignment(models.Model):
 
 class Assignment_Submission(models.Model):
 
+<<<<<<< HEAD
     submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_submission_done_by')
+=======
+    submitted_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='assignment_submission_done_by')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
     assignment = models.ForeignKey(Assignment,on_delete=models.CASCADE)
     submission_date = models.DateField(auto_now=True)
     content = models.FileField(upload_to='content/', null=True, blank=True)
@@ -210,22 +251,38 @@ class Assignment_Submission(models.Model):
 
 # class Assignment_Partners_Group(models.Model):
 
+<<<<<<< HEAD
 #     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
 #     submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_submitted_by')
+=======
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    submitted_by = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='assignment_submitted_by')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
 
 # class Assignment_Partners(models.Model):
 
+<<<<<<< HEAD
 #     # partners = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='partner')
 #     partners = models.ManyToManyField(settings.AUTH_USER_MODEL)
 #     assignment_group = models.ForeignKey(Assignment_Partners_Group, on_delete=models.CASCADE,related_name='assignment_group_number')
 #     # submitted_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+=======
+    partners = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='partner')
+    assignment_group = models.ForeignKey(Assignment_Partners_Group, on_delete=models.CASCADE)
+    # submitted_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
 
 class Assignment_Grading(models.Model):
 
     # user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+<<<<<<< HEAD
     # user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_doer')
     marks = models.CharField(max_length=3, null=True, blank=True)
     is_graded = models.BooleanField(default = False)
+=======
+    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='assignment_doer')
+    marks = models.CharField(max_length=3)
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
     grading_datetime = models.DateTimeField(auto_now=True)
     comments = models.TextField(null=True, blank=True)
     assignment_status = (('pass','PASS'),
@@ -235,12 +292,20 @@ class Assignment_Grading(models.Model):
     status = models.CharField(max_length=50, choices=assignment_status, default=assignment_status[2][0])
     assignment_submission = models.ForeignKey(Assignment_Submission, on_delete=models.CASCADE)
     # grader = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+<<<<<<< HEAD
     grader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_grader', null=True, blank=True)
+=======
+    grader = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='assignment_grader')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
 
 class Enrollment(models.Model):
 
     # user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+<<<<<<< HEAD
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='enrolled_user')
+=======
+    user = models.ForeignKey('accounts.CustomUser', on_delete=models.CASCADE, related_name='enrolled_user')
+>>>>>>> 17d114f9201c6c7dde988b36443dd7e2acc2fa54
     course = models.ManyToManyField(Course)
     enrollment_start_date = models.DateTimeField()
     enrollment_end_date = models.DateTimeField()
