@@ -22,7 +22,13 @@ router.register(r'assignment_gradings', Assignment_GradingViewSet)
 router.register(r'enrollments', EnrollmentViewSet)
 # router.register(r'assignment-submissions', AssignmentSubmissionViewSet)
 # router.register(r'assignment_status', Assignment_StatusView)
-router.register(r'assignment_status', AssignmentStatusViewSet)
+# router.register(r'assignment_status', AssignmentStatusViewSet)
+router.register(r'assignment_status', FilterViewSet)
+#Filtration APIs 
+# http://127.0.0.1:8000/api/assignment_status/filter_related_objects/?status=none
+# http://127.0.0.1:8000/api/assignment_status/filter_related_objects/?status=pending
+# http://127.0.0.1:8000/api/assignment_status/filter_related_objects/?status=pass
+# http://127.0.0.1:8000/api/assignment_status/filter_related_objects/?status=fail
 
 
 urlpatterns = [

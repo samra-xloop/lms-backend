@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'accounts',
     'course',
     'corsheaders',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [

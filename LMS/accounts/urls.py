@@ -3,12 +3,11 @@
 from django.urls import path
 from . import views
 urlpatterns = [
-    path('register/', views.register_user, name='register'),
+    path('register/', views.register_user_with_role, name='register'),
     path('update_user/', views.update_user, name='update_user'),
     path('delete_user/', views.delete_user, name='delete_user'),
     path('login/', views.user_login, name='login'),
     path('logout/', views.user_logout, name='logout'),
-    path('assign_role/', views.assign_role, name='assign_role'),
     path('list_all_users/', views.list_all_users, name='list_all_users'),
     path('list_instructor_users/', views.list_instructor_users, name='list_instructor_users'),
     path('list_own_user/', views.list_own_user, name='list_own_user'),
@@ -28,4 +27,14 @@ urlpatterns = [
     path('remove_courses_from_team/', views.remove_courses_from_team, name='remove_courses_from_team'),
     path('remove_courses_from_users/', views.remove_courses_from_users, name='remove_courses_from_users'),
     path('list_single_user/<int:user_id>/', views.list_single_user, name='list_single_user'),
+    
+
+
+   
+
+
+
+
+
+
 ]

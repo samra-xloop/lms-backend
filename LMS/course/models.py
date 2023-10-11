@@ -11,7 +11,7 @@ class Category(models.Model):
     title = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE ,default=None, null=True, blank=True)
-    is_updated = models.BooleanField(default=False)
+    is_updated = models.BooleanField(null=True, blank=True)
     updated_at = models.DateField(auto_now=True)
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateField(auto_now=True)
@@ -225,7 +225,8 @@ class Assignment_Grading(models.Model):
     # user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     # user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_doer')
     marks = models.CharField(max_length=3, null=True, blank=True)
-    grading_datetime = models.DateTimeField(default=timezone.now)
+    is_graded = models.BooleanField(default = False)
+    grading_datetime = models.DateTimeField(auto_now=True)
     comments = models.TextField(null=True, blank=True)
     assignment_status = (('pass','PASS'),
                          ('fail','FAIL'),

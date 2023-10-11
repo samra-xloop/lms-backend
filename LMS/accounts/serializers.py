@@ -27,21 +27,30 @@ class UserSerializer(serializers.ModelSerializer):
         user.save()
         return user
 
+from rest_framework import serializers
+from .models import CustomUser, Role
 
-#For Roles 
-class RoleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Role
-        fields = ['user', 'role']
-        
-#For User
-class UserSerializer(serializers.ModelSerializer):
-    role = serializers.StringRelatedField(source='role.role')  
+class RegisterUserWithRoleSerializer(serializers.ModelSerializer):
+    role = serializers.CharField()  # Accept role as a string field
 
     class Meta:
         model = CustomUser
-        fields = ['id','username', 'email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'updated_at', 'role']  # Include 'role' here
+        fields = ['email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'password', 'role']
 
+    def create(self, validated_data):
+        # Extract the role from the validated data
+        role_data = validated_data.pop('role')
+
+        # Create a new user
+        user = CustomUser.objects.create(**validated_data)
+        user.set_password(validated_data['password'])
+        user.save()
+
+        # Assign the role to the user
+        Role.objects.create(user=user, role=role_data)
+
+        return user
+    
 #For User With Roles
 class UserWithRoleSerializer(serializers.ModelSerializer):
     role = serializers.StringRelatedField(source='role.role')
@@ -92,3 +101,41 @@ class TeamWithUsersSerializer(serializers.ModelSerializer):
         return UserSerializer(users, many=True).data
 
     
+from rest_framework import serializers
+from .models import CustomUser, Role
+
+from rest_framework import serializers
+from .models import CustomUser, Role
+
+class UpdateUserWithRoleSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(required=False)  # Accept role as an optional field
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'password', 'role']
+
+    def update(self, instance, validated_data):
+        # Extract the role from the validated data (if present)
+        role_data = validated_data.pop('role', None)
+
+        # Update the user's fields
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        
+        # Save the updated user
+        instance.save()
+
+        # Assign the role to the user (if role data is provided)
+        if role_data:
+            role, _ = Role.objects.get_or_create(user=instance)
+            role.role = role_data
+            role.save()
+
+        return instance
+
+class ListUserSerializer(serializers.ModelSerializer):
+    role = serializers.StringRelatedField(source='role.role')
+
+    class Meta:
+        model = CustomUser
+        fields = ['id', 'username', 'email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'updated_at', 'role','teams','courses']

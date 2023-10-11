@@ -470,69 +470,7 @@ class AssignmentViewSet(viewsets.ModelViewSet):
 #             if request.user.role.role != 'admin':
 #                 return Response({'detail': 'You do not have permission to delete assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
             
-#             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
-
-# from django.forms.models import model_to_dict
-
-# class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
-#     queryset = Assignment_Submission.objects.all()
-#     serializer_class = Assignment_SubmissionSerializer
-#     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
-
-    # def create(self, request, *args, **kwargs):
-    #         # Check if the requesting user has an 'admin' role
-    #         if request.user.role.role != 'admin':
-    #             return Response({'detail': 'You do not have permission to create assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
-            
-    #         serializer = Assignment_SubmissionSerializer(data=request.data)
-    #         if serializer.is_valid():
-    #             print("served")
-    #             submission = serializer.save()
-    #             # Assuming `submission` is your Assignment_Submission object
-    #             submission_dict = model_to_dict(submission)
-
-    #             print(submission_dict)
-    #             print(submission_dict['assignment'])
-
-    #             # Create an Assignment_Grading instance related to the submission
-    #             grading_data = {
-    #                 'assignment_submission': submission_dict['assignment'],
-    #                 'user': submission_dict['submitted_by'],
-    #                 'marks':2,
-    #                 'status':'pending',
-    #                 'grader':2
-    #             }
-    #             print("what is the problem")
-    #             grading_serializer = Assignment_GradingSerializer(data=grading_data)
-    #             print("yahan")
-    #             if grading_serializer.is_valid():
-    #                 print("sahi cahl raha hai")
-    #                 try:
-    #                     grading_serializer.save()
-    #                 except Exception as e:
-    #                     print(e)
-
-    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    # def create(self, request, *args, **kwargs):
-    #     # Check if the requesting user has an 'admin' role
-    #     if request.user.role.role != 'admin':
-    #         return Response({'detail': 'You do not have permission to create assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
-
-    #     serializer = Assignment_SubmissionSerializer(data=request.data)
-    #     if serializer.is_valid():
-    #         submission = serializer.save()
-
-    #         # You don't need to extract fields manually, the serializer already handles it
-    #         # Create an Assignment_Grading instance related to the submission using defaults
-    #         grading_serializer = Assignment_GradingSerializer(data={'assignment_submission': submission})
-            
-    #         if grading_serializer.is_valid():
-    #             grading_serializer.save()
-    #             return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)    
 
 class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
     queryset = Assignment_Submission.objects.all()
@@ -590,6 +528,8 @@ class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
                 return Response({'detail': 'You do not have permission to delete assignment_submissions.'}, status=status.HTTP_403_FORBIDDEN)
             
             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
+
 
 # class Assignment_Partners_GroupViewSet(viewsets.ModelViewSet):
 #     queryset = Assignment_Partners_Group.objects.all()
@@ -1201,26 +1141,66 @@ class SubCategoryListView(generics.ListAPIView):
 #         return Response(serializer.data)
 
 
-class AssignmentStatusViewSet(viewsets.ModelViewSet):
+# class AssignmentStatusViewSet(viewsets.ModelViewSet):
+#     queryset = Assignment_Grading.objects.all()
+#     serializer_class = Assignment_GradingSerializer
+#     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
+
+#     # Custom action to filter assignments based on status
+#     @action(detail=False, methods=['GET'])
+#     def filter_by_status(self, request):
+#         status_param = request.query_params.get('status')
+
+#         if status_param not in ('pass', 'fail', 'pending', 'none'):
+#             return Response({"error": "Invalid status parameter"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         if request.user.role.role != 'admin':
+#             return Response({'detail': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
+
+#         if status_param == 'none':
+#             submissions = Assignment_Grading.objects.all()
+#         else:
+#             submissions = Assignment_Grading.objects.filter(status=status_param)
+
+#         serializer = Assignment_GradingSerializer(submissions, many=True)
+#         return Response(serializer.data)
+    
+
+
+class FilterViewSet(viewsets.ModelViewSet):
     queryset = Assignment_Grading.objects.all()
     serializer_class = Assignment_GradingSerializer
     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
 
-    # Custom action to filter assignments based on status
-    @action(detail=False, methods=['GET'])
-    def filter_by_status(self, request):
-        status_param = request.query_params.get('status')
 
-        if status_param not in ('pass', 'fail', 'pending', 'none'):
-            return Response({"error": "Invalid status parameter"}, status=status.HTTP_400_BAD_REQUEST)
+    @action(detail=False, methods=['GET'])
+    def filter_related_objects(self, request):
+        status = request.query_params.get('status', None)
+        grading_filter = {}
 
         if request.user.role.role != 'admin':
             return Response({'detail': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
 
-        if status_param == 'none':
-            submissions = Assignment_Grading.objects.all()
+        if status is not None:
+            if status == "none":
+                # If status is "none," return all objects without filtering
+                graded_assignments = Assignment_Grading.objects.all()
+            else:
+                grading_filter['status'] = status
+                graded_assignments = Assignment_Grading.objects.filter(**grading_filter)
         else:
-            submissions = Assignment_Grading.objects.filter(status=status_param)
+            # If status parameter is not provided, return all objects without filtering
+            graded_assignments = Assignment_Grading.objects.all()
 
-        serializer = Assignment_GradingSerializer(submissions, many=True)
-        return Response(serializer.data)
+        related_submissions = graded_assignments.values_list('assignment_submission', flat=True)
+        related_assignments = Assignment_Submission.objects.filter(id__in=related_submissions).values_list('assignment', flat=True)
+
+        grading_serializer = Assignment_GradingSerializer(graded_assignments, many=True)
+        submission_serializer = Assignment_SubmissionSerializer(Assignment_Submission.objects.filter(id__in=related_submissions), many=True)
+        assignment_serializer = AssignmentSerializer(Assignment.objects.filter(id__in=related_assignments), many=True)
+
+        return Response({
+            'assignment_grading': grading_serializer.data,
+            'assignment_submission': submission_serializer.data,
+            'assignment': assignment_serializer.data
+        })

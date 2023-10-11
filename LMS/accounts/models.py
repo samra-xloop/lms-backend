@@ -14,7 +14,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-from course.models import Category, Course
+
 
     
 class CustomUser(AbstractUser):
@@ -52,7 +52,6 @@ class CustomUser(AbstractUser):
         ('O', 'Other'),
     ]
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, default='O')
-    # need to be corrected
     city = models.CharField(max_length=100, default='Unknown')
     country = models.CharField(max_length=100, default='Unknown')
     phone_number = models.CharField(max_length=20, default='Unknown')
@@ -63,7 +62,7 @@ class CustomUser(AbstractUser):
     updated_at = models.DateTimeField(default=timezone.now)
     teams = models.ManyToManyField('Team', related_name='members', blank=True)
     courses = models.ManyToManyField('course.Course', related_name='courses', blank=True)
-
+    
 
     def __str__(self):
         return self.username
@@ -115,7 +114,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils import timezone
 from django.conf import settings
-# from course.models import Course
+
 from django.db import models
 from django.utils import timezone
 
@@ -143,8 +142,8 @@ class Team(models.Model):
     created_at = models.DateTimeField(default=timezone.now, editable=False)
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
-    users = models.ManyToManyField(CustomUser, related_name='team_users', blank=True)
-    courses = models.ManyToManyField(Course, related_name='teams', blank=True)
+    users = models.ManyToManyField('CustomUser', related_name='team_users', blank=True)
+    courses = models.ManyToManyField('course.Course', related_name='teams', blank=True)
     
 
 

@@ -22,6 +22,13 @@ class ConditionalUpdated_ByAtMixin:
             data.pop('updated_by', None)
         return data
 
+class ConditionalGrading_DatetimeAtMixin:
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if not instance.is_graded:
+            data.pop('grading_datetime', None)
+        return data    
+
 class CategorySerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin ,serializers.ModelSerializer):
     
     class Meta:
@@ -90,35 +97,7 @@ class AssignmentSerializer(ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin,
 #         model = Assignment_Submission
 #         fields = '__all__'
 
-from rest_framework import serializers
-from .models import Assignment_Submission, Assignment_Grading
-
-# class Assignment_GradingSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Assignment_Grading
-#         fields = '__all__'
-
-# class Assignment_SubmissionSerializer(serializers.ModelSerializer):
-#     grading = Assignment_GradingSerializer(read_only=True)  # Serializer for the related Assignment_Grading instance
-
-#     class Meta:
-#         model = Assignment_Submission
-#         fields = '__all__'
-
-#     def create(self, validated_data):
-#         # Create the Assignment_Submission instance
-#         assignment_submission = Assignment_Submission.objects.create(**validated_data)
-
-#         # Create an Assignment_Grading instance related to the submission
-#         grading_instance = Assignment_Grading.objects.create(
-#             assignment_submission=assignment_submission,
-#             # You can omit 'marks', 'status', 'grader' here to use the defaults from the model
-#         )
-
-#         return assignment_submission
-
-
-class Assignment_GradingSerializer(serializers.ModelSerializer):
+class Assignment_GradingSerializer(ConditionalGrading_DatetimeAtMixin,serializers.ModelSerializer):
     class Meta:
         model = Assignment_Grading
         fields = '__all__'
@@ -146,7 +125,6 @@ class Assignment_SubmissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment_Submission
         fields = '__all__'
-
 
 # class Assignment_Partners_GroupSerializer(serializers.ModelSerializer):
 
