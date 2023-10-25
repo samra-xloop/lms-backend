@@ -3,25 +3,37 @@ from django.db import models
 from django.utils import timezone
 # from accounts.models import CustomUser
 from django.conf import settings
+
+# class Author(models.Model):
+
+#     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='creator')
+#     # co_author = models.ManyToManyField(settings.AUTH_USER_MODEL, null=True, blank=True)
+
+
 class Category(models.Model):
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='category_user')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='category_created_by')
+    created_at = models.DateField(auto_now=True)
+    # editor = models.ManyToManyField(AuthorsandCo_authors, null=True, blank=True)
     # user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
     # slug = models.SlugField()
     title = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     parent = models.ForeignKey('self', on_delete=models.CASCADE ,default=None, null=True, blank=True)
-    is_updated = models.BooleanField(null=True, blank=True)
+    is_updated = models.BooleanField(default=False)
     updated_at = models.DateField(auto_now=True)
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateField(auto_now=True)
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='category_updated_by')
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE,related_name='category_updated_by')
 
     def __str__(self):
         return self.title     
 
 class Course(models.Model):
 
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='course_created_by')
+    # created_by = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='course_created_by')
+    editor = models.ManyToManyField(settings.AUTH_USER_MODEL, default=None)
     title = models.CharField(max_length=100, unique=True)
     description = models.TextField(null=True, blank=True)
     # many courses can have same category.
@@ -38,7 +50,6 @@ class Course(models.Model):
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateField(auto_now=True)
     course_image = models.ImageField(upload_to='course_images/', null=True, blank=True)
-    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='course_author')
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='course_updated_by')
     
     def __str__(self):
@@ -46,6 +57,8 @@ class Course(models.Model):
 
 class Module(models.Model):
 
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='module_created_by')
+    editor = models.ManyToManyField(settings.AUTH_USER_MODEL, default=None)
     title = models.CharField(max_length=100)
     # one course can have multiple modules
     course = models.ForeignKey(Course, on_delete=models.CASCADE)  
@@ -70,6 +83,8 @@ class Module(models.Model):
 
 class Unit(models.Model):
 
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='unit_created_by')
+    editor = models.ManyToManyField(settings.AUTH_USER_MODEL, default=None)
     # modules = models.ForeignKey(Module, on_delete=models.CASCADE)
     title = models.CharField(max_length=100)
     module = models.ForeignKey(Module, on_delete=models.CASCADE)
@@ -94,6 +109,8 @@ class Unit(models.Model):
 
 class Video(models.Model):
 
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='video_created_by')
+    editor = models.ManyToManyField(settings.AUTH_USER_MODEL, default=None)
     title = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     url = models.URLField()
@@ -117,6 +134,8 @@ class Video(models.Model):
 
 class File(models.Model):
 
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='file_created_by')
+    editor = models.ManyToManyField(settings.AUTH_USER_MODEL, default=None)
     title = models.CharField(max_length=100)
     description = models.TextField(null=True, blank=True)
     url = models.URLField(null=True , blank=True)
@@ -176,6 +195,8 @@ class File(models.Model):
 # #get it confirmed
 class Assignment(models.Model):
 
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_created_by')
+    editor = models.ManyToManyField(settings.AUTH_USER_MODEL, default=None)
     title = models.CharField(max_length=100)
     description = models.TextField()
     unit = models.ForeignKey(Unit, on_delete=models.CASCADE)
@@ -185,13 +206,14 @@ class Assignment(models.Model):
     is_updated = models.BooleanField(default=False)
     updated_at = models.DateField(auto_now=True)
     is_active = models.BooleanField(default=False)
-    is_team_submission_allowed = models.BooleanField(null=True, blank=True)
+    is_team_submission_allowed = models.BooleanField(default=False)
     Number_of_members = models.IntegerField(null=True, blank=True)
     is_delete = models.BooleanField(default=False)
     deleted_at = models.DateField(auto_now=True)
     # updated_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     marks = models.CharField(max_length=10)
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_updated_by')
+    assignment_file = models.FileField(upload_to='assignment_file', null=True, blank=True)
 
     class Meta:
         unique_together = ('unit', 'title')
@@ -207,35 +229,37 @@ class Assignment_Submission(models.Model):
     submission_date = models.DateField(auto_now=True)
     content = models.FileField(upload_to='content/', null=True, blank=True)
     submitted_link = models.URLField()
+    submission_time = models.TimeField(auto_now=True)
 
 # class Assignment_Partners_Group(models.Model):
 
 #     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
 #     submitted_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_submitted_by')
 
-# class Assignment_Partners(models.Model):
+class Assignment_Partners(models.Model):
 
-#     # partners = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='partner')
-#     partners = models.ManyToManyField(settings.AUTH_USER_MODEL)
-#     assignment_group = models.ForeignKey(Assignment_Partners_Group, on_delete=models.CASCADE,related_name='assignment_group_number')
-#     # submitted_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    # partners = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='partner')
+    partners = models.ManyToManyField(settings.AUTH_USER_MODEL)
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE,related_name='assignment_number')
+    # submitted_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
 
 class Assignment_Grading(models.Model):
 
     # user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     # user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_doer')
-    marks = models.CharField(max_length=3, null=True, blank=True)
+    marks = models.CharField(max_length=3, null=True ,blank=True)
     is_graded = models.BooleanField(default = False)
     grading_datetime = models.DateTimeField(auto_now=True)
     comments = models.TextField(null=True, blank=True)
-    assignment_status = (('pass','PASS'),
-                         ('fail','FAIL'),
-                         ('pending','PENDING'))
+    assignment_status = (('Pass','PASS'),
+                         ('Not Passed','FAIL'),
+                         ('Pending','PENDING'))
 
     status = models.CharField(max_length=50, choices=assignment_status, default=assignment_status[2][0])
     assignment_submission = models.ForeignKey(Assignment_Submission, on_delete=models.CASCADE)
-    # grader = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    # grader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_grader', null=True, blank=True)
     grader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='assignment_grader', null=True, blank=True)
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
 
 class Enrollment(models.Model):
 

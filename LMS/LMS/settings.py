@@ -30,9 +30,7 @@ CORS_ALLOWED_ORIGINS = [
     # Other allowed origins...
 ]
 ALLOWED_HOSTS = []
-AUTHENTICATION_BACKENDS = [
-    'django.contrib.auth.backends.ModelBackend',
-]
+
 AUTH_USER_MODEL = 'accounts.CustomUser'
 
 REST_FRAMEWORK = {

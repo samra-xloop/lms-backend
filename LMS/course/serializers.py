@@ -29,6 +29,13 @@ class ConditionalGrading_DatetimeAtMixin:
             data.pop('grading_datetime', None)
         return data    
 
+# class AuthorSerializer(serializers.ModelSerializer):
+    
+#     class Meta:
+#         model = Author
+#         fields = '__all__'
+
+
 class CategorySerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin ,serializers.ModelSerializer):
     
     class Meta:
@@ -114,6 +121,7 @@ class Assignment_SubmissionCreateSerializer(serializers.ModelSerializer):
         # Create an Assignment_Grading instance related to the submission with default values
         grading_instance = Assignment_Grading.objects.create(
             assignment_submission=assignment_submission,
+            assignment=assignment_submission.assignment
             # Set default values here
         )
 
@@ -132,12 +140,12 @@ class Assignment_SubmissionSerializer(serializers.ModelSerializer):
 #         model = Assignment_Partners_Group
 #         fields = '__all__'
 
-# class Assignment_PartnersSerializer(serializers.ModelSerializer):
+class Assignment_PartnersSerializer(serializers.ModelSerializer):
 
-#     class Meta:
-#         model = Assignment_Partners
-#         # fields = '__all__'
-#         fields = ['id']
+    class Meta:
+        model = Assignment_Partners
+        fields = '__all__'
+        # fields = ['id']
 
 # class Assignment_GradingSerializer(serializers.ModelSerializer):
 
