@@ -68,9 +68,10 @@ from course.permissions import *
 #     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
 
 #     def create(self, request, *args, **kwargs):
+#         self.permission_classes = [permissions.IsAuthenticated, CreateAuthorPermission]
 #         # Check if the requesting user has an 'admin' or 'instructor' role
-#         if request.user.role.role not in ['admin', 'instructor']:
-#             return Response({'detail': 'You do not have permission to create authors.'}, status=status.HTTP_403_FORBIDDEN)
+#         if not CreateAuthorPermission().has_permission(request, self):
+#                 return Response({'detail': 'You do not have permission to create author.'}, status=status.HTTP_403_FORBIDDEN)
 
 #         serializer = AuthorSerializer(data=request.data)
 #         if serializer.is_valid():
@@ -80,10 +81,10 @@ from course.permissions import *
 
 #     def list(self, request, *args, **kwargs):
 #         # Apply the custom permission class for listing authors
-#         self.permission_classes = [permissions.IsAuthenticated, AuthorPermission]
+#         self.permission_classes = [permissions.IsAuthenticated, ListAuthorPermission]
 
 #         # Check if the requesting user has permission to list authors
-#         if not AuthorPermission().has_object_permission(request, self, Author()):
+#         if not ListAuthorPermission().has_permission(request, self):
 #             return Response({'detail': 'You do not have permission to list authors.'}, status=status.HTTP_403_FORBIDDEN)
 
 #         queryset = self.filter_queryset(self.get_queryset())
@@ -110,6 +111,60 @@ from course.permissions import *
 
 #         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
+class AuthorViewSet(viewsets.ModelViewSet):
+    serializer_class = AuthorSerializer
+    queryset = Author.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # self.permission_classes = [permissions.IsAuthenticated]
+
+        user = self.request.user
+
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return Author.objects.all()
+
+        # If the user is an instructor, filter based on created_by or editor
+        if user.role.role == 'instructor':
+            return Author.objects.filter(created_by=user) | Author.objects.filter(editor=user)
+
+        return Author.objects.none()  # No permission for other roles
+
+    def create(self, request, *args, **kwargs):
+        # Apply the custom permission class for creating authors
+        # self.permission_classes = [permissions.IsAuthenticated, CreateAuthorPermission]
+
+        # Check if the requesting user has 'admin' or 'instructor' role
+        if not CreateAuthorORCoursePermission().has_permission(request, self):
+            return Response({'detail': 'You do not have permission to create an author.'}, status=status.HTTP_403_FORBIDDEN)
+
+        serializer = AuthorSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def update(self, request, *args, **kwargs):
+        # Apply the custom permission class for editing authors
+        # self.permission_classes = [permissions.IsAuthenticated, AuthorPermission]
+
+        # Check if the requesting user has permission to edit the author
+        if not AuthorPermission().has_object_permission(request, self, self.get_object()):
+            return Response({'detail': 'You do not have permission to edit this author.'}, status=status.HTTP_403_FORBIDDEN)
+
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        # Apply the custom permission class for deleting authors
+        # self.permission_classes = [permissions.IsAuthenticated, AuthorPermission]
+
+        # Check if the requesting user has permission to delete the author
+        if not AuthorPermission().has_object_permission(request, self, self.get_object()):
+            return Response({'detail': 'You do not have permission to delete this author.'}, status=status.HTTP_403_FORBIDDEN)
+
+        return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+
 
 class CategoryViewSet(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -125,11 +180,13 @@ class CategoryViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     def list(self, request, *args, **kwargs):
-        # Apply the custom permission class for listing categories
-        self.permission_classes = [permissions.IsAuthenticated, CategoryPermission]
-        # Check if the requesting user has permission to list categories
-        if not CategoryPermission().has_object_permission(request, self, Category()):
+        if request.user.role.role not in ['admin','instructor']:
             return Response({'detail': 'You do not have permission to list categories.'}, status=status.HTTP_403_FORBIDDEN)
+        # Apply the custom permission class for listing categories
+        # self.permission_classes = [permissions.IsAuthenticated, CategoryPermission]
+        # # Check if the requesting user has permission to list categories
+        # if not CategoryPermission().has_object_permission(request, self, Category()):
+        #     return Response({'detail': 'You do not have permission to list categories.'}, status=status.HTTP_403_FORBIDDEN)
         queryset = self.filter_queryset(self.get_queryset())
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
@@ -140,14 +197,16 @@ class CategoryViewSet(viewsets.ModelViewSet):
         # if not CategoryPermission().has_object_permission(request, self, self.get_object()):
         #     return Response({'detail': 'You do not have permission to edit this category.'}, status=status.HTTP_403_FORBIDDEN)
         if request.user.role.role not in ['admin']:
-            return Response({'detail': 'You do not have permission to create categories.'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'You do not have permission to update categories.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
     def destroy(self, request, *args, **kwargs):
         # Apply the custom permission class for deleting categories
-        self.permission_classes = [permissions.IsAuthenticated, CategoryPermission]
-        # Check if the requesting user has permission to delete the category
-        if not CategoryPermission().has_object_permission(request, self, self.get_object()):
-            return Response({'detail': 'You do not have permission to delete this category.'}, status=status.HTTP_403_FORBIDDEN)
+        # self.permission_classes = [permissions.IsAuthenticated, CategoryPermission]
+        # # Check if the requesting user has permission to delete the category
+        # if not CategoryPermission().has_object_permission(request, self, self.get_object()):
+        #     return Response({'detail': 'You do not have permission to delete this category.'}, status=status.HTTP_403_FORBIDDEN)
+        if request.user.role.role not in ['admin']:
+            return Response({'detail': 'You do not have permission to delete categories.'}, status=status.HTTP_403_FORBIDDEN)
         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
@@ -217,8 +276,8 @@ class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializer
     permission_classes = [permissions.IsAuthenticated]
     def create(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,CreateCoursePermission]
-        if not CreateCoursePermission().has_permission(request, self):
+        # self.permission_classes = [permissions.IsAuthenticated,CreateCoursePermission]
+        if not CreateAuthorORCoursePermission().has_permission(request, self):
                 return Response({'detail': 'You do not have permission to create course.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = CourseSerializer(data=request.data)
         if serializer.is_valid():
@@ -227,21 +286,34 @@ class CourseViewSet(viewsets.ModelViewSet):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         # Handle module creation as before
     def update(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,EditCoursePermission]
-        if not EditCoursePermission().has_object_permission(request, self, self.get_object()):
+        # self.permission_classes = [permissions.IsAuthenticated,EditORDeletePermission]
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
             return Response({'detail': 'You do not have permission to update this course.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
         # Handle module update as before
-    def list(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,ListCoursePermission]
-        if not ListCoursePermission().has_permission(request, self):
-                return Response({'detail': 'You do not have permission to list course.'}, status=status.HTTP_403_FORBIDDEN)
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    # def list(self, request, *args, **kwargs):
+    #     self.permission_classes = [permissions.IsAuthenticated,ListCoursePermission]
+    #     if not ListCoursePermission().has_permission(request, self):
+    #             return Response({'detail': 'You do not have permission to list course.'}, status=status.HTTP_403_FORBIDDEN)
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+    def get_queryset(self):
+        user = self.request.user
+
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return Course.objects.all()
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return Course.objects.filter(instructor__created_by=user) | Course.objects.filter(instructor__editor=user)
+
+        return Course.objects.none()
+
     def destroy(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,DeleteCoursePermission]
-        if not DeleteCoursePermission().has_object_permission(request, self, self.get_object()):
+        self.permission_classes = [permissions.IsAuthenticated,EditORDeletePermission]
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
                 return Response({'detail': 'You do not have permission to delete this course.'}, status=status.HTTP_403_FORBIDDEN)
         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
@@ -327,26 +399,39 @@ class ModuleViewSet(viewsets.ModelViewSet):
     
     
     def update(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,EditPermission]
+        # self.permission_classes = [permissions.IsAuthenticated,EditPermission]
 
-        if not EditPermission().has_object_permission(request, self, self.get_object()):
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
             return Response({'detail': 'You do not have permission to update this module.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
         # Handle module update as before
 
-    def list(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,ListPermission]
-        if not ListPermission().has_permission(request, self):
-                return Response({'detail': 'You do not have permission to list modules.'}, status=status.HTTP_403_FORBIDDEN)
+    # def list(self, request, *args, **kwargs):
+    #     self.permission_classes = [permissions.IsAuthenticated,ListPermission]
+    #     if not ListPermission().has_permission(request, self):
+    #             return Response({'detail': 'You do not have permission to list modules.'}, status=status.HTTP_403_FORBIDDEN)
 
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return Module.objects.all()
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return Module.objects.filter(instructor__created_by=user) | Module.objects.filter(instructor__editor=user)
+
+        return Module.objects.none()
 
     def destroy(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,DeletePermission]
-        if not DeletePermission().has_object_permission(request, self, self.get_object()):
+        # self.permission_classes = [permissions.IsAuthenticated,EditORDeletePermission]
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
                 return Response({'detail': 'You do not have permission to delete this module.'}, status=status.HTTP_403_FORBIDDEN)
         
         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -416,8 +501,8 @@ class UnitViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,CreateUnitPermission]
-        if not CreateUnitPermission().has_permission(request, self):
+        # self.permission_classes = [permissions.IsAuthenticated,CreatePermission]
+        if not CreatePermission().has_permission(request, self):
                 return Response({'detail': 'You do not have permission to create unit.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = UnitSerializer(data=request.data)
         if serializer.is_valid():
@@ -427,26 +512,40 @@ class UnitViewSet(viewsets.ModelViewSet):
         # Handle module creation as before
 
     def update(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,EditUnitPermission]
+        # self.permission_classes = [permissions.IsAuthenticated,EditPermission]
 
-        if not EditUnitPermission().has_object_permission(request, self, self.get_object()):
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
             return Response({'detail': 'You do not have permission to update this unit.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
         # Handle module update as before
 
-    def list(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,ListUnitPermission]
-        if not ListUnitPermission().has_permission(request, self):
-                return Response({'detail': 'You do not have permission to list units.'}, status=status.HTTP_403_FORBIDDEN)
+    # def list(self, request, *args, **kwargs):
+    #     self.permission_classes = [permissions.IsAuthenticated,ListUnitPermission]
+    #     if not ListUnitPermission().has_permission(request, self):
+    #             return Response({'detail': 'You do not have permission to list units.'}, status=status.HTTP_403_FORBIDDEN)
 
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return Unit.objects.all()
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return Unit.objects.filter(instructor__created_by=user) | Unit.objects.filter(instructor__editor=user)
+
+        return Unit.objects.none()
+
 
     def destroy(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,DeleteUnitPermission]
-        if not DeleteUnitPermission().has_object_permission(request, self, self.get_object()):
+        self.permission_classes = [permissions.IsAuthenticated,EditORDeletePermission]
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
                 return Response({'detail': 'You do not have permission to delete this unit.'}, status=status.HTTP_403_FORBIDDEN)
         
         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -510,8 +609,8 @@ class VideoViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,CreateContentPermission]
-        if not CreateContentPermission().has_permission(request, self):
+        # self.permission_classes = [permissions.IsAuthenticated,CreateModulePermission]
+        if not CreatePermission().has_permission(request, self):
                 return Response({'detail': 'You do not have permission to create videos.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = VideoSerializer(data=request.data)
         if serializer.is_valid():
@@ -521,26 +620,37 @@ class VideoViewSet(viewsets.ModelViewSet):
         # Handle module creation as before
 
     def update(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,EditContentPermission]
+        # self.permission_classes = [permissions.IsAuthenticated,EditPermission]
 
-        if not EditContentPermission().has_object_permission(request, self, self.get_object()):
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
             return Response({'detail': 'You do not have permission to update this video.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
         # Handle module update as before
 
-    def list(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,ListContentPermission]
-        if not ListContentPermission().has_permission(request, self):
-                return Response({'detail': 'You do not have permission to list videos.'}, status=status.HTTP_403_FORBIDDEN)
+    # def list(self, request, *args, **kwargs):
+    #     self.permission_classes = [permissions.IsAuthenticated,ListContentPermission]
+    #     if not ListContentPermission().has_permission(request, self):
+    #             return Response({'detail': 'You do not have permission to list videos.'}, status=status.HTTP_403_FORBIDDEN)
 
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+    def get_queryset(self):
+        user = self.request.user
 
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return Video.objects.all()
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return Video.objects.filter(instructor__created_by=user) | Video.objects.filter(instructor__editor=user)
+
+        return Video.objects.none()
     def destroy(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,DeleteContentPermission]
-        if not DeleteContentPermission().has_object_permission(request, self, self.get_object()):
+        # self.permission_classes = [permissions.IsAuthenticated,EditPermission]
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
                 return Response({'detail': 'You do not have permission to delete this video.'}, status=status.HTTP_403_FORBIDDEN)
         
         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -604,8 +714,8 @@ class FileViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,CreateContentPermission]
-        if not CreateContentPermission().has_permission(request, self):
+        # self.permission_classes = [permissions.IsAuthenticated,CreateModulePermission]
+        if not CreatePermission().has_permission(request, self):
                 return Response({'detail': 'You do not have permission to create files.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = FileSerializer(data=request.data)
         if serializer.is_valid():
@@ -615,26 +725,39 @@ class FileViewSet(viewsets.ModelViewSet):
         # Handle module creation as before
 
     def update(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,EditContentPermission]
+        # self.permission_classes = [permissions.IsAuthenticated,EditPermission]
 
-        if not EditContentPermission().has_object_permission(request, self, self.get_object()):
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
             return Response({'detail': 'You do not have permission to update this file.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
         # Handle module update as before
 
-    def list(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,ListContentPermission]
-        if not ListContentPermission().has_permission(request, self):
-                return Response({'detail': 'You do not have permission to list files.'}, status=status.HTTP_403_FORBIDDEN)
+    # def list(self, request, *args, **kwargs):
+    #     self.permission_classes = [permissions.IsAuthenticated,ListContentPermission]
+    #     if not ListContentPermission().has_permission(request, self):
+    #             return Response({'detail': 'You do not have permission to list files.'}, status=status.HTTP_403_FORBIDDEN)
 
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return File.objects.all()
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return File.objects.filter(instructor__created_by=user) | File.objects.filter(instructor__editor=user)
+
+        return File.objects.none()
 
     def destroy(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,DeleteContentPermission]
-        if not DeleteContentPermission().has_object_permission(request, self, self.get_object()):
+        self.permission_classes = [permissions.IsAuthenticated,EditORDeletePermission]
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
                 return Response({'detail': 'You do not have permission to delete this file.'}, status=status.HTTP_403_FORBIDDEN)
         
         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -730,8 +853,8 @@ class AssignmentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,CreateContentPermission]
-        if not CreateContentPermission().has_permission(request, self):
+        # self.permission_classes = [permissions.IsAuthenticated,CreatePermission]
+        if not CreatePermission().has_permission(request, self):
                 return Response({'detail': 'You do not have permission to create assignments.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = AssignmentSerializer(data=request.data)
         if serializer.is_valid():
@@ -741,26 +864,39 @@ class AssignmentViewSet(viewsets.ModelViewSet):
         # Handle module creation as before
 
     def update(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,EditContentPermission]
+        # self.permission_classes = [permissions.IsAuthenticated,EditPermission]
 
-        if not EditContentPermission().has_object_permission(request, self, self.get_object()):
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
             return Response({'detail': 'You do not have permission to update this assignment.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
         # Handle module update as before
 
-    def list(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,ListContentPermission]
-        if not ListContentPermission().has_permission(request, self):
-                return Response({'detail': 'You do not have permission to list assignments.'}, status=status.HTTP_403_FORBIDDEN)
+    # def list(self, request, *args, **kwargs):
+    #     self.permission_classes = [permissions.IsAuthenticated,ListContentPermission]
+    #     if not ListContentPermission().has_permission(request, self):
+    #             return Response({'detail': 'You do not have permission to list assignments.'}, status=status.HTTP_403_FORBIDDEN)
 
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return Assignment.objects.all()
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return Assignment.objects.filter(instructor__created_by=user) | Assignment.objects.filter(instructor__editor=user)
+
+        return Assignment.objects.none()    
 
     def destroy(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,DeleteContentPermission]
-        if not DeleteContentPermission().has_object_permission(request, self, self.get_object()):
+        self.permission_classes = [permissions.IsAuthenticated,EditORDeletePermission]
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
                 return Response({'detail': 'You do not have permission to delete this assignment.'}, status=status.HTTP_403_FORBIDDEN)
         
         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -984,57 +1120,73 @@ class Assignment_SubmissionViewSet(viewsets.ModelViewSet):
 #             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 
-# class Assignment_Partners_GroupViewSet(viewsets.ModelViewSet):
-#     queryset = Assignment_Partners_Group.objects.all()
-#     serializer_class = Assignment_Partners_GroupSerializer
-#     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
+class Assignment_Partners_GroupViewSet(viewsets.ModelViewSet):
+    queryset = Assignment_Partners_Group.objects.all()
+    serializer_class = Assignment_Partners_GroupSerializer
+    permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
 
-#     def create(self, request, *args, **kwargs):
-#             # Check if the requesting user has an 'admin' role
-#             if request.user.role.role != 'admin':
-#                 return Response({'detail': 'You do not have permission to create assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
-            
-#             serializer = Assignment_Partners_GroupSerializer(data=request.data)
-#             if serializer.is_valid():
-#                 serializer.save()
-#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-#             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    def create(self, request, *args, **kwargs):
+            # Check if the requesting user has an 'admin' role
+            # if request.user.role.role != 'admin':
+            #     return Response({'detail': 'You do not have permission to create assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
+        # self.permission_classes = [permissions.IsAuthenticated,CreatePermission]
+        if not CreatePermission().has_permission(request, self):
+                return Response({'detail': 'You do not have permission to create assignments.'}, status=status.HTTP_403_FORBIDDEN)            
+        serializer = Assignment_Partners_GroupSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+    # def get_queryset(self):
+    #     user = self.request.user
+
+    #     # Example: Filter queryset based on user's role
+    #     if user.role.role == 'admin':
+    #         return Assignment_Partners_Group.objects.all()
+    #     else:
+    #         # Filter queryset for non-admin users
+    #         return Assignment_Partners_Group.objects.filter(user=user)
+
+    # def list(self, request, *args, **kwargs):
+    #     queryset = self.filter_queryset(self.get_queryset())
+
+    #     if not queryset.exists():
+    #         # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+    #         return Response([], status=status.HTTP_404_NOT_FOUND)
+
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+        # Override the update method to check permissions
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return Assignment_Partners_Group.objects.all()
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return Assignment_Partners_Group.objects.filter(instructor__created_by=user) | Assignment_Partners_Group.objects.filter(instructor__editor=user)
+
+        return Assignment_Partners_Group.objects.none()
+    
+    def update(self, request, *args, **kwargs):
+            # Check if the requesting user has an 'admin' role
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
+            return Response({'detail': 'You do not have permission to update this assignment.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
         
-#     def get_queryset(self):
-#         user = self.request.user
-
-#         # Example: Filter queryset based on user's role
-#         if user.role.role == 'admin':
-#             return Assignment_Partners_Group.objects.all()
-#         else:
-#             # Filter queryset for non-admin users
-#             return Assignment_Partners_Group.objects.filter(user=user)
-
-#     def list(self, request, *args, **kwargs):
-#         queryset = self.filter_queryset(self.get_queryset())
-
-#         if not queryset.exists():
-#             # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
-#             return Response([], status=status.HTTP_404_NOT_FOUND)
-
-#         serializer = self.get_serializer(queryset, many=True)
-#         return Response(serializer.data)
-
-#         # Override the update method to check permissions
-#     def update(self, request, *args, **kwargs):
-#             # Check if the requesting user has an 'admin' role
-#             if request.user.role.role != 'admin':
-#                 return Response({'detail': 'You do not have permission to update assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
+    def destroy(self, request, *args, **kwargs):
+            # Check if the requesting user has an 'admin' role
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
+            return Response({'detail': 'You do not have permission to update this assignment.'}, status=status.HTTP_403_FORBIDDEN)
             
-#             return super().update(request, *args, **kwargs)
-        
-
-#     def destroy(self, request, *args, **kwargs):
-#             # Check if the requesting user has an 'admin' role
-#             if request.user.role.role != 'admin':
-#                 return Response({'detail': 'You do not have permission to delete assignment_partners_group.'}, status=status.HTTP_403_FORBIDDEN)
-            
-#             return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
 class Assignment_PartnersViewSet(viewsets.ModelViewSet):
     queryset = Assignment_Partners.objects.all()
@@ -1042,39 +1194,54 @@ class Assignment_PartnersViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]  # Apply authentication to all operations
     def create(self, request, *args, **kwargs):
             # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to create assignment_partners.'}, status=status.HTTP_403_FORBIDDEN)
-            serializer = Assignment_PartnersSerializer(data=request.data)
-            if serializer.is_valid():
+        # self.permission_classes = [permissions.IsAuthenticated,CreateModulePermission]
+        if not CreatePermission().has_permission(request, self):
+                return Response({'detail': 'You do not have permission to create assignments.'}, status=status.HTTP_403_FORBIDDEN)            
+        serializer = Assignment_PartnersSerializer(data=request.data)
+        if serializer.is_valid():
                 serializer.save()
                 return Response(serializer.data, status=status.HTTP_201_CREATED)
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     def get_queryset(self):
         user = self.request.user
-        # Example: Filter queryset based on user's role
+
+        # Check if the user is an admin
         if user.role.role == 'admin':
             return Assignment_Partners.objects.all()
-        else:
-            # Filter queryset for non-admin users
-            return Assignment_Partners.objects.filter(user=user)
-    def list(self, request, *args, **kwargs):
-        queryset = self.filter_queryset(self.get_queryset())
-        if not queryset.exists():
-            # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
-            return Response([], status=status.HTTP_404_NOT_FOUND)
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
-        # Override the update method to check permissions
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return Assignment_Partners.objects.filter(instructor__created_by=user) | Assignment_Partners.objects.filter(instructor__editor=user)
+
+        return Assignment_Partners.objects.none()
+
+    # def get_queryset(self):
+    #     user = self.request.user
+    #     # Example: Filter queryset based on user's role
+    #     if user.role.role == 'admin':
+    #         return Assignment_Partners.objects.all()
+    #     else:
+    #         # Filter queryset for non-admin users
+    #         return Assignment_Partners.objects.filter(user=user)
+    # def list(self, request, *args, **kwargs):
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     if not queryset.exists():
+    #         # return Response({'detail': 'No objects found'}, status=status.HTTP_404_NOT_FOUND)
+    #         return Response([], status=status.HTTP_404_NOT_FOUND)
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+    #     # Override the update method to check permissions
     def update(self, request, *args, **kwargs):
             # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to update assignment_partners.'}, status=status.HTTP_403_FORBIDDEN)
-            return super().update(request, *args, **kwargs)
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
+            return Response({'detail': 'You do not have permission to update this assignment.'}, status=status.HTTP_403_FORBIDDEN)
+        return super().update(request, *args, **kwargs)
     def destroy(self, request, *args, **kwargs):
             # Check if the requesting user has an 'admin' role
-            if request.user.role.role != 'admin':
-                return Response({'detail': 'You do not have permission to delete assignment_partners.'}, status=status.HTTP_403_FORBIDDEN)
-            return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)        
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
+            return Response({'detail': 'You do not have permission to update this assignment.'}, status=status.HTTP_403_FORBIDDEN)
+        return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)        
 
 class Assignment_GradingViewSet(viewsets.ModelViewSet):
     queryset = Assignment_Grading.objects.all()
@@ -1082,8 +1249,8 @@ class Assignment_GradingViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,CreateGradingPermission]
-        if not CreateGradingPermission().has_permission(request, self):
+        # self.permission_classes = [permissions.IsAuthenticated,CreatePermission]
+        if not CreatePermission().has_permission(request, self):
                 return Response({'detail': 'You do not have permission to create gradings.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = Assignment_GradingSerializer(data=request.data)
         if serializer.is_valid():
@@ -1093,26 +1260,39 @@ class Assignment_GradingViewSet(viewsets.ModelViewSet):
         # Handle module creation as before
 
     def update(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,EditGradingPermission]
+        # self.permission_classes = [permissions.IsAuthenticated,EditORDeletePermission]
 
-        if not EditGradingPermission().has_object_permission(request, self, self.get_object()):
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
             return Response({'detail': 'You do not have permission to update this grading.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
         # Handle module update as before
 
-    def list(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,ListGradingPermission]
-        if not ListGradingPermission().has_permission(request, self):
-                return Response({'detail': 'You do not have permission to list gradings.'}, status=status.HTTP_403_FORBIDDEN)
+    # def list(self, request, *args, **kwargs):
+    #     self.permission_classes = [permissions.IsAuthenticated,ListGradingPermission]
+    #     if not ListGradingPermission().has_permission(request, self):
+    #             return Response({'detail': 'You do not have permission to list gradings.'}, status=status.HTTP_403_FORBIDDEN)
 
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
+
+    def get_queryset(self):
+        user = self.request.user
+
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return Assignment_Grading.objects.all()
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return Assignment_Grading.objects.filter(instructor__created_by=user) | Assignment_Grading.objects.filter(instructor__editor=user)
+
+        return Assignment_Grading.objects.none()
 
     def destroy(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,DeleteGradingPermission]
-        if not DeleteGradingPermission().has_object_permission(request, self, self.get_object()):
+        # self.permission_classes = [permissions.IsAuthenticated,EditORDeletePermission]
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
                 return Response({'detail': 'You do not have permission to delete this grading.'}, status=status.HTTP_403_FORBIDDEN)
         
         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -1175,7 +1355,7 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def create(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,CreatePermission]
+        # self.permission_classes = [permissions.IsAuthenticated,CreatePermission]
         if not CreatePermission().has_permission(request, self):
                 return Response({'detail': 'You do not have permission to create enrollment.'}, status=status.HTTP_403_FORBIDDEN)
         serializer = EnrollmentSerializer(data=request.data)
@@ -1186,26 +1366,39 @@ class EnrollmentViewSet(viewsets.ModelViewSet):
         # Handle module creation as before
 
     def update(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,EditPermission]
+        # self.permission_classes = [permissions.IsAuthenticated,EditPermission]
 
-        if not EditPermission().has_object_permission(request, self, self.get_object()):
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
             return Response({'detail': 'You do not have permission to update this enrollment.'}, status=status.HTTP_403_FORBIDDEN)
         return super().update(request, *args, **kwargs)
 
         # Handle module update as before
 
-    def list(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,ListPermission]
-        if not ListPermission().has_permission(request, self):
-                return Response({'detail': 'You do not have permission to list enrollment.'}, status=status.HTTP_403_FORBIDDEN)
+    def get_queryset(self):
+        user = self.request.user
 
-        queryset = self.filter_queryset(self.get_queryset())
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+        # Check if the user is an admin
+        if user.role.role == 'admin':
+            return Enrollment.objects.all()
+
+        # If the user is an instructor, filter based on the related Author's created_by or editor
+        if user.role.role == 'instructor':
+            return Enrollment.objects.filter(instructor__created_by=user) | Enrollment.objects.filter(instructor__editor=user)
+
+        return Enrollment.objects.none()
+
+    # def list(self, request, *args, **kwargs):
+    #     self.permission_classes = [permissions.IsAuthenticated,ListPermission]
+    #     if not ListPermission().has_permission(request, self):
+    #             return Response({'detail': 'You do not have permission to list enrollment.'}, status=status.HTTP_403_FORBIDDEN)
+
+    #     queryset = self.filter_queryset(self.get_queryset())
+    #     serializer = self.get_serializer(queryset, many=True)
+    #     return Response(serializer.data)
 
     def destroy(self, request, *args, **kwargs):
-        self.permission_classes = [permissions.IsAuthenticated,DeletePermission]
-        if not DeletePermission().has_object_permission(request, self, self.get_object()):
+        # self.permission_classes = [permissions.IsAuthenticated,EditORDeletePermission]
+        if not EditORDeletePermission().has_object_permission(request, self, self.get_object()):
                 return Response({'detail': 'You do not have permission to delete this enrollment.'}, status=status.HTTP_403_FORBIDDEN)
         
         return Response({'detail': 'Delete operation is not allowed.'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -1388,7 +1581,7 @@ class Assignment_SubmissionByAssignmentListView(generics.RetrieveAPIView):
 
     def get(self, request, *args, **kwargs):
 
-        if request.user.role.role not in ['admin','instructor','learner']:
+        if request.user.role.role not in ['admin','instructor']:
             return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
                 
         assignment_id = self.kwargs.get('assignment_id')
@@ -1408,54 +1601,189 @@ class Assignment_SubmissionByAssignmentListView(generics.RetrieveAPIView):
         except Assignment.DoesNotExist:
             return Response({'detail': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
 
-# class Assignment_Partners_GroupByAssignmentListView(generics.RetrieveAPIView):
-#     queryset = Assignment.objects.all()  # Assuming you have an Author model
-#     serializer_class = Assignment_Partners_GroupSerializer
-#     lookup_url_kwarg = 'assignment_id'
-#     permission_classes = [permissions.IsAuthenticated]
-
-#     def get(self, request, *args, **kwargs):
-
-#         if request.user.role.role != 'admin':
-#             return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
-
-#         assignment_id = self.kwargs.get('assignment_id')
-
-#         try:
-#             assignment = Assignment.objects.get(id=assignment_id)
-#             assignment_partners_group = Assignment_Partners_Group.objects.filter(assignment=assignment)
-            
-#             if assignment_partners_group.exists():
-#                 serializer = self.get_serializer(assignment_partners_group, many=True)
-#                 return Response(serializer.data, status=status.HTTP_200_OK)
-#             else:
-#                 # return Response({'detail': 'No assignment_partners found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
-#                 return Response([], status=status.HTTP_404_NOT_FOUND)
-        
-#         except Assignment.DoesNotExist:
-#             return Response({'detail': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
-
-
-class Assignment_PartnersByAssignmentListView(generics.RetrieveAPIView):
+class Assignment_Partners_GroupByAssignmentListView(generics.RetrieveAPIView):
     queryset = Assignment.objects.all()  # Assuming you have an Author model
-    serializer_class = Assignment_PartnersSerializer
+    serializer_class = Assignment_Partners_GroupSerializer
     lookup_url_kwarg = 'assignment_id'
     permission_classes = [permissions.IsAuthenticated]
+
     def get(self, request, *args, **kwargs):
-        if request.user.role.role != 'admin':
+
+        if request.user.role.role not in ['admin','instructor']:
             return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
+
         assignment_id = self.kwargs.get('assignment_id')
+
         try:
             assignment = Assignment.objects.get(id=assignment_id)
-            assignment_partners = Assignment_Partners.objects.filter(assignment=assignment)
+            assignment_partners_group = Assignment_Partners_Group.objects.filter(assignment=assignment)
+            
+            if assignment_partners_group.exists():
+                serializer = self.get_serializer(assignment_partners_group, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                # return Response({'detail': 'No assignment_partners found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
+                return Response([], status=status.HTTP_404_NOT_FOUND)
+        
+        except Assignment.DoesNotExist:
+            return Response({'detail': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class Assignment_PartnersByAssignment_Partners_GroupListView(generics.RetrieveAPIView):
+    queryset = Assignment_Partners_Group.objects.all()  # Assuming you have an Author model
+    serializer_class = Assignment_PartnersSerializer
+    lookup_url_kwarg = 'assignment_partners_id'
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+
+        if request.user.role.role not in ['admin','instructor']:
+            return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
+
+        assignment_group_id = self.kwargs.get('assignment_group_id')
+
+        try:
+            assignment_group = Assignment_Partners_Group.objects.get(id=assignment_group_id)
+            assignment_partners = Assignment_Partners.objects.filter(assignment_group=assignment_group)
+            
             if assignment_partners.exists():
                 serializer = self.get_serializer(assignment_partners, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
                 # return Response({'detail': 'No assignment_partners found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
                 return Response([], status=status.HTTP_404_NOT_FOUND)
-        except Assignment.DoesNotExist:
-            return Response({'detail': 'Assignment not found.'}, status=status.HTTP_404_NOT_FOUND)
+        
+        except Assignment_Partners_Group.DoesNotExist:
+            return Response({'detail': 'Assignment_Partners_Group not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+# class Assignment_PartnersDetailView(generics.RetrieveAPIView):
+#     queryset = Assignment_Partners.objects.all()
+#     serializer_class = Assignment_PartnersSerializer
+#     lookup_url_kwarg = 'assignment_partners_id'
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def get(self, request, *args, **kwargs):
+
+#         if request.user.role.role != 'admin':
+#             return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
+#         assignment_id = self.kwargs.get('assignment_id')
+#         assignment_partners_group_id = self.kwargs.get('assignment_partners_group_id')
+#         assignment_partners_id = self.kwargs.get('assignment_partners_id')
+
+#         try:
+#             assignment_partners = Assignment_Partners.objects.get(id=assignment_partners_id, assignment_partners_group__id=assignment_partners_group_id, assignment_partners_group__assignment__id = assignment_id)
+#             serializer = self.get_serializer(assignment_partners)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Assignment_Partners.DoesNotExist:
+#             # Book with the specified ID and author ID does not exist
+#             return Response({'detail': 'Partners not found for this assignment.'}, status=status.HTTP_404_NOT_FOUND)
+
+# class Assignment_PartnersDetailView(generics.RetrieveAPIView):
+#     queryset = Assignment_Partners.objects.all()
+#     serializer_class = Assignment_PartnersSerializer
+#     lookup_url_kwarg = 'assignment_partners_id'
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def get(self, request, *args, **kwargs):
+#         if request.user.role.role != 'admin':
+#             return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
+#         assignment_id = self.kwargs.get('assignment_id')
+#         assignment_partners_group_id = self.kwargs.get('assignment_partners_group_id')
+#         assignment_partners_id = self.kwargs.get('assignment_partners_id')
+
+#         try:
+#             print("running")
+#             try:
+#                 print(assignment_partners_id)
+#                 print(assignment_partners_group_id)
+#                 assignment_partners = Assignment_Partners.objects.get(assignment_partners_group=assignment_partners_group_id)           
+#             # serializer = self.get_serializer(assignment_partners)
+#             except Exception as e:
+#                  print("erre", e)
+#             print(assignment_partners)
+#             # return Response(status=status.HTTP_200_OK)
+#         except Exception as e:
+#             print("running 2")
+#             return Response({'detail': 'Partners not found for this assignment.', "error": e }, status=status.HTTP_404_NOT_FOUND)
+
+# from rest_framework import generics
+# from rest_framework.response import Response
+# from rest_framework import status
+# from django.http import Http404
+
+# class AssignmentPartnersByAssignmentPartnersGroupListView(generics.RetrieveAPIView):
+#     # queryset = Assignment_Partners_Group.objects.all()
+#     serializer_class = Assignment_PartnersSerializer  # Replace with your serializer
+#     # lookup_url_kwarg = 'assignment_partners_group_id'
+#     permission_classes = [permissions.IsAuthenticated]
+
+#     def get(self, request, *args, **kwargs):
+#         if request.user.role.role != 'admin':
+#             return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
+        
+#         assignment_id = self.kwargs.get('assignment_id')
+#         assignment_partners_group_id = self.kwargs.get('assignment_partners_group_id')
+#         assignment_partners_id = self.kwargs.get('assignment_partners_id')
+
+
+#         try:
+#             # assignment_partners_group = self.get_object()
+#             assignment_partners = Assignment_Partners.objects.get(id=assignment_partners_id, assignment_partners_group__id=assignment_partners_group_id, assignment_partners_group__assignment__id =assignment_id)
+
+#             if assignment_partners.exists():
+#                 serializer = self.get_serializer(assignment_partners, many=True)
+#                 return Response(serializer.data, status=status.HTTP_200_OK)
+#             else:
+#                 return Response([], status=status.HTTP_404_NOT_FOUND)
+
+#         except Http404:
+#             return Response({'detail': 'Assignment_Partners_Group not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+# class AssignmentPartnersByAssignmentPartnersGroupListView(generics.RetrieveAPIView):
+#     # serializer_class = Assignment_PartnersSerializer  # Replace with your serializer
+#     # permission_classes = [permissions.IsAuthenticated]
+
+#     # def get(self, request, *args, **kwargs):
+#     #     if request.user.role.role != 'admin':
+#     #         return Response({'detail': 'You do not have permission to delete.'}, status=status.HTTP_403_FORBIDDEN)
+        
+#     #     assignment_id = self.kwargs.get('assignment_id')
+#     #     assignment_partners_group_id = self.kwargs.get('assignment_group_id')
+#     #     assignment_partners_id = self.kwargs.get('assignment_partners_id')
+
+#     #     try:
+#     #         assignment_partners_group = self.get_object()
+#     #         assignment_partners = Assignment_Partners.objects.filter(
+#     #             id=assignment_partners_id,
+#     #             assignment_group__id=assignment_partners_group_id,
+#     #             assignment_group__assignment__id=assignment_id
+#     #         )
+
+#     #         if assignment_partners.exists():
+#     #             serializer = self.get_serializer(assignment_partners, many=True)
+#     #             return Response(serializer.data, status=status.HTTP_200_OK)
+#     #         else:
+#     #             return Response([], status=status.HTTP_404_NOT_FOUND)
+
+#     #     except Http404:
+#     #         return Response({'detail': 'Assignment_Partners_Group not found.'}, status=status.HTTP_404_NOT_FOUND)
+
+#     serializer_class = Assignment_PartnersSerializer
+
+#     def get(self,request,*args, **kwargs):
+#         assignment_partners_id=self.kwargs.get('assignment_partners_id')
+#         assignment_partners_group_id=self.kwargs.get('assignment_partners_group_id')
+#         assignment_id=self.kwargs.get('assignment_id')
+
+#         try:
+#             print("video1")
+#             assignment_partners=Assignment_Partners.objects.get(id=assignment_partners_id, assignment_partners_group__id=assignment_partners_group_id, assignment_partners_groups__assignment__id=assignment_id)
+#             print('video')
+#             serializer = self.get_serializer(assignment_partners)
+#             return Response(serializer.data, status=status.HTTP_200_OK)
+#         except Assignment_Partners.DoesNotExist:
+#             return Response({'detail': 'Video not found for this unit.'}, status=status.HTTP_404_NOT_FOUND)
+
 
 
 class Assignment_GradingByAssignment_SubmissionListView(generics.RetrieveAPIView):
@@ -1643,7 +1971,7 @@ class FilterViewSet(viewsets.ModelViewSet):
         status = request.query_params.get('status', None)
         grading_filter = {}
 
-        if request.user.role.role not in ['admin','instructor','learner']:
+        if request.user.role.role not in ['admin','instructor']:
             return Response({'detail': 'You do not have permission to access this resource.'}, status=status.HTTP_403_FORBIDDEN)
 
         if status is not None:

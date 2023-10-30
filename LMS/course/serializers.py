@@ -29,11 +29,11 @@ class ConditionalGrading_DatetimeAtMixin:
             data.pop('grading_datetime', None)
         return data    
 
-# class AuthorSerializer(serializers.ModelSerializer):
+class AuthorSerializer(serializers.ModelSerializer):
     
-#     class Meta:
-#         model = Author
-#         fields = '__all__'
+    class Meta:
+        model = Author
+        fields = '__all__'
 
 
 class CategorySerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin ,serializers.ModelSerializer):
@@ -134,11 +134,11 @@ class Assignment_SubmissionSerializer(serializers.ModelSerializer):
         model = Assignment_Submission
         fields = '__all__'
 
-# class Assignment_Partners_GroupSerializer(serializers.ModelSerializer):
+class Assignment_Partners_GroupSerializer(serializers.ModelSerializer):
 
-#     class Meta:
-#         model = Assignment_Partners_Group
-#         fields = '__all__'
+    class Meta:
+        model = Assignment_Partners_Group
+        fields = '__all__'
 
 class Assignment_PartnersSerializer(serializers.ModelSerializer):
 

@@ -17,13 +17,14 @@ router.register(r'files', FileViewSet)
 router.register(r'assignments', AssignmentViewSet)
 router.register(r'assignment_submissions', Assignment_SubmissionViewSet)
 router.register(r'assignment_partners', Assignment_PartnersViewSet)
-# router.register(r'assignment_partners_group', Assignment_Partners_GroupViewSet)
+router.register(r'assignment_partners_group', Assignment_Partners_GroupViewSet)
 router.register(r'assignment_gradings', Assignment_GradingViewSet)
 router.register(r'enrollments', EnrollmentViewSet)
 # router.register(r'assignment-submissions', AssignmentSubmissionViewSet)
 # router.register(r'assignment_status', Assignment_StatusView)
 # router.register(r'assignment_status', AssignmentStatusViewSet)
 router.register(r'assignment_status', FilterViewSet)
+router.register(r'authors', AuthorViewSet, basename='author')
 #Filtration APIs 
 # http://127.0.0.1:8000/api/assignment_status/filter_related_objects/?status=none
 # http://127.0.0.1:8000/api/assignment_status/filter_related_objects/?status=pending
@@ -40,9 +41,14 @@ urlpatterns = [
     path('units/<int:unit_id>/files/', FileByUnitListView.as_view(), name='files-units-list'),
     path('units/<int:unit_id>/assignments/', AssignmentByUnitListView.as_view(), name='assignments-unitss-list'),
     path('assignments/<int:assignment_id>/assignment_submissions/', Assignment_SubmissionByAssignmentListView.as_view(), name='assignment_submissions-assignments-list'),
-    path('assignments/<int:assignment_id>/assignment_partners/', Assignment_PartnersByAssignmentListView.as_view(), name='assignment_partners_group-assignments-list'),
-    # path('assignment_partners_group/<int:assignment_group_id>/assignment_partners/', Assignment_PartnersByAssignment_Partners_GroupListView.as_view(), name='assignment_partners-assignment_partners_group-list'),
+    path('assignments/<int:assignment_id>/assignment_partners_group/', Assignment_Partners_GroupByAssignmentListView.as_view(), name='assignment_partners_group-assignments-list'),
+    path('assignment_partners_group/<int:assignment_group_id>/assignment_partners/', Assignment_PartnersByAssignment_Partners_GroupListView.as_view(), name='assignment_partners-assignment_partners_group-list'),
     path('assignment_submissions/<int:assignment_submission_id>/assignment_gradings/', Assignment_GradingByAssignment_SubmissionListView.as_view(), name='assignment_gradings-assingment_submissions-list'),
     path('courses/<int:course_id>/enrollments/', EnrollmentByCourseListView.as_view(), name='enrollments-courses-list'),
     path('categories/<int:category_id>/sub_categories/', SubCategoryListView.as_view(), name='sub_categories-categories-list'),
+    # path('assignments/<int:assignment_id>/assignment_partners_group/<int:assignment_partners_group_id>/assignment_partners_id/', Assignment_PartnersDetailView.as_view(), name='assignment_partners_group-assignments-list'),
+    # # path('assignmnet/<int:ass_id>/groups/<int:grp_id>')
+    # path('api/assignments/<int:assignment_id>/assignment_partners_group/<int:assignment_partners_group_id>/assignment_partners/', AssignmentPartnersByAssignmentPartnersDeView.as_view(), name='assignment-partners-by-group'),
+    # path('api/assignments/<int:assignment_id>/assignment_partners_group/<int:assignment_group_id>/assignment_partners/', AssignmentPartnersByAssignmentPartnersGroupListView.as_view(), name='assignment-partners-by-group'),
+    # path('api/assignments/<int:assignment_id>/assignment_partners_group/<int:assignment_group_id>/assignment_partners/<int:assignment_partners_id>/', AssignmentPartnersByAssignmentPartnersGroupListView.as_view(), name='assignment-partners-by-group'),
 ]
