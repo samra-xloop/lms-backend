@@ -56,6 +56,7 @@ class CustomUser(AbstractUser):
     country = models.CharField(max_length=100, default='Unknown')
     phone_number = models.CharField(max_length=20, default='Unknown')
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
+    avatar = models.ImageField(upload_to='avatars/', blank=True, null=True)
     is_active = models.BooleanField(default=True)
     is_deleted = models.BooleanField(default=False)
     created_at = models.DateTimeField(default=timezone.now)
@@ -91,7 +92,9 @@ class Role(models.Model):
         role = models.CharField(max_length=20, choices=ROLE_CHOICES)
 
         def __str__(self):
-            return f"{self.user.email} - {self.role}"
+            # return f"{self.user.email} - {self.role}"
+            return f"{self.role}"
+        
         
 
 

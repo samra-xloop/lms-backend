@@ -67,7 +67,8 @@ def user_login(request):
                              'id':user.id,
                              'first_name': user.first_name,
                              'last_name': user.last_name,
-                             'role': role,}, 
+                             'role': role,
+                             'is_active': user.is_active}, 
                             status=status.HTTP_200_OK)
 
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -228,7 +229,7 @@ def request_password_reset(request):
             fail_silently=False,
         )
 
-        return Response({'message': 'Password reset email sent.'})
+        return Response({'message': 'Password reset email sent.', 'token' : token})
     except User.DoesNotExist:
         return Response({'error': 'User does not exist.'}, status=status.HTTP_400_BAD_REQUEST)
     except Exception as e:
@@ -407,6 +408,63 @@ def add_courses_to_team(request):
                     return Response({'detail': f'Course with ID {course_id} not found'}, status=status.HTTP_404_NOT_FOUND)
 
             return Response({'detail': 'Courses added to the team successfully'}, status=status.HTTP_200_OK)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_team(request, pk):
+    if request.method == 'PUT':
+        # Check if the requesting user has an 'admin' role
+        if request.user.role.role in ['admin', 'instructor']:
+            try:
+                team = Team.objects.get(pk=pk)
+                
+                # Check if the team is marked as deleted
+                if team.is_deleted:
+                    return Response({'detail': 'Team is marked as deleted and cannot be updated.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+                # Update the team using the TeamSerializer
+                serializer = TeamSerializer(team, data=request.data, partial=True)
+                if serializer.is_valid():
+                    serializer.save()
+                    return Response(serializer.data, status=status.HTTP_200_OK)
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            except Team.DoesNotExist:
+                return Response({'detail': 'Team does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            return Response({'detail': 'You do not have permission to update teams.'}, status=status.HTTP_403_FORBIDDEN)
+
+
+
+
+# @api_view(['PUT'])
+# @permission_classes([IsAuthenticated])
+# def update_user(request):
+#     if request.method == 'PUT':
+#         # Check if the requesting user has an 'admin' role
+#         if request.user.role.role in ['admin'] :
+#             email = request.data.get('email')
+#             try:
+#                 user = CustomUser.objects.get(email=email)
+                
+#                 # Check if the user is marked as deleted
+#                 if user.is_deleted:
+#                     return Response({'detail': 'User is marked as deleted and cannot be updated.'}, status=status.HTTP_400_BAD_REQUEST)
+                
+#                 # Update the user and role using the UpdateUserWithRoleSerializer
+#                 serializer = UpdateUserWithRoleSerializer(user, data=request.data, partial=True)
+#                 if serializer.is_valid():
+#                     serializer.save()
+#                     return Response(serializer.data, status=status.HTTP_200_OK)
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#             except CustomUser.DoesNotExist:
+#                 return Response({'detail': 'User does not exist.'}, status=status.HTTP_404_NOT_FOUND)
+#         else:
+#             return Response({'detail': 'You do not have permission to update users.'}, status=status.HTTP_403_FORBIDDEN)
+                    
+
+
+
 
 
 

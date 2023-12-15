@@ -42,23 +42,29 @@ class CategorySerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, 
         model = Category
         fields = '__all__'
 
-class CourseSerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin,serializers.ModelSerializer):
-    
+
+class CourseSerializer(ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin,serializers.ModelSerializer):
+
     class Meta:
         model = Course
         fields = '__all__'
 
-class ModuleSerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin,serializers.ModelSerializer):
+
+class ModuleSerializer(ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin,serializers.ModelSerializer):
 
     class Meta:
         model = Module
         fields = '__all__'
 
-class UnitSerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin,serializers.ModelSerializer):
-    
+
+
+class UnitSerializer(ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin,serializers.ModelSerializer):
+
     class Meta:
         model = Unit
         fields = '__all__'
+
+
 
 class VideoSerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin,serializers.ModelSerializer):
     
@@ -72,25 +78,12 @@ class FileSerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, Cond
         model = File 
         fields = '__all__'
 
-# class QuizSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Quiz
-#         fields = '__all__'
+class ResourceSerializer( ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin,serializers.ModelSerializer):
+    
+    class Meta:
+        model = Resource 
+        fields = '__all__'        
 
-# class Quiz_QuestionSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Quiz_Question 
-#         fields = '__all__'
-
-# class Question_OptionSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Question_Option 
-#         fields = '__all__'
-
-# class Quiz_SubmissionSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Quiz_Submission 
-#         fields = '__all__'
 
 class AssignmentSerializer(ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin, ConditionalUpdated_ByAtMixin,serializers.ModelSerializer):
     
@@ -98,11 +91,6 @@ class AssignmentSerializer(ConditionalDeletedAtMixin, ConditionalUpdatedAtMixin,
         model = Assignment 
         fields = '__all__'
 
-# class Assignment_SubmissionSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Assignment_Submission
-#         fields = '__all__'
 
 class Assignment_GradingSerializer(ConditionalGrading_DatetimeAtMixin,serializers.ModelSerializer):
     class Meta:
@@ -121,8 +109,7 @@ class Assignment_SubmissionCreateSerializer(serializers.ModelSerializer):
         # Create an Assignment_Grading instance related to the submission with default values
         grading_instance = Assignment_Grading.objects.create(
             assignment_submission=assignment_submission,
-            assignment=assignment_submission.assignment
-            # Set default values here
+            # assignment=assignment_submission.assignment
         )
 
         return assignment_submission
@@ -145,13 +132,7 @@ class Assignment_PartnersSerializer(serializers.ModelSerializer):
     class Meta:
         model = Assignment_Partners
         fields = '__all__'
-        # fields = ['id']
 
-# class Assignment_GradingSerializer(serializers.ModelSerializer):
-
-#     class Meta:
-#         model = Assignment_Grading
-#         fields = '__all__'
 
 class EnrollmentSerializer(serializers.ModelSerializer):
 
@@ -159,9 +140,6 @@ class EnrollmentSerializer(serializers.ModelSerializer):
         model = Enrollment
         fields = '__all__'
 
-# class Assignment_StatusSerializer(serializers.ModelSerializer):
 
-#     class Meta:
-#         model = Assignment_Status
-#         fields = '__all__'
-
+class CourseProgressSerializer(serializers.Serializer):
+    overall_progress = serializers.FloatField()

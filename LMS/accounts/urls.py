@@ -27,7 +27,7 @@ urlpatterns = [
     path('remove_courses_from_team/', views.remove_courses_from_team, name='remove_courses_from_team'),
     path('remove_courses_from_users/', views.remove_courses_from_users, name='remove_courses_from_users'),
     path('list_single_user/<int:user_id>/', views.list_single_user, name='list_single_user'),
-    
+    path('teams/<int:pk>/update/', views.update_team, name='update_team'),
 
 
    

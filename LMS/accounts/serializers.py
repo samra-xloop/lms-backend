@@ -35,7 +35,7 @@ class RegisterUserWithRoleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'password', 'role']
+        fields = ['id','email', 'first_name', 'last_name', 'gender', 'city', 'country', 'phone_number', 'profile_picture', 'is_active', 'password', 'role', 'avatar']
 
     def create(self, validated_data):
         # Extract the role from the validated data
